@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- Ilustrasi placeholder lokal Zanna-Cell. Bukan foto atau kemasan merek asli. -->
+  <symbol id="rice" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="43" ry="5" fill="#e1e5d9"/>
+    <path d="m71 23 58 0-4 18 15 76q2 11-10 12H70q-12-1-10-12l15-76Z" fill="#eee4c9" stroke="#cbbc96" stroke-width="2"/>
+    <path d="M73 28h54M75 39h50" stroke="#c4b186" stroke-width="3"/>
+    <path d="M65 80h70l5 37q2 11-10 12H70q-12-1-10-12Z" fill="#408d71"/>
+    <rect x="76" y="52" width="48" height="35" rx="17" fill="#fffaf0"/>
+    <g fill="none" stroke="#bda56c" stroke-width="2"><path d="M100 81V57m0 12-8-5m8 11-8-5m8-1 8-5m-8 11 8-5"/></g>
+    <text x="100" y="109" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="bold" fill="white">BERAS</text>
+  </symbol>
+  <symbol id="oil" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="29" ry="4" fill="#e9e3cc"/>
+    <rect x="88" y="17" width="24" height="13" rx="3" fill="#42856c"/>
+    <path d="M88 30v14L76 58v63q0 9 9 9h30q9 0 9-9V58l-12-14V30Z" fill="#f6cc56" stroke="#dab24a" stroke-width="2"/>
+    <path d="M83 60v59" stroke="#fff0b0" stroke-width="5" stroke-linecap="round"/>
+    <rect x="76" y="72" width="48" height="33" rx="3" fill="#fffcf0"/>
+    <path d="M100 77q-15 19 0 20 15-1 0-20" fill="#ccab42"/>
+    <path d="M87 114h27" stroke="#d7ad3d" stroke-width="2"/>
+  </symbol>
+  <symbol id="sugar" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="36" ry="4" fill="#e1e8e9"/>
+    <path d="m71 26 57 0 6 98-66 0Z" fill="#fbfdfc" stroke="#cbdad7" stroke-width="2"/>
+    <path d="m71 26 57 0-1 15H72Z" fill="#9fc8b7"/>
+    <path d="M69 100h63l2 24H68Z" fill="#4c8a76"/>
+    <rect x="80" y="53" width="40" height="34" rx="8" fill="#e7f2ec"/>
+    <path d="m92 65 9-5 10 6-9 6Z" fill="white" stroke="#a9cbbd"/>
+    <path d="m92 65 1 12 9 5V72m9-6-1 11-8 5" fill="none" stroke="#a9cbbd"/>
+    <text x="100" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="white">GULA</text>
+  </symbol>
+  <symbol id="noodles" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="128" rx="54" ry="5" fill="#ebdfd4"/>
+    <path d="m48 43 104-5 7 79-109 7Z" fill="#bf6049" stroke="#a74d37" stroke-width="2"/>
+    <path d="m50 49 102-5m-100 73 104-6" stroke="#e5a27b" stroke-width="4" stroke-dasharray="3 3"/>
+    <path d="m57 61 88-4 3 46-89 5Z" fill="#f6e3b4"/>
+    <ellipse cx="103" cy="87" rx="28" ry="11" fill="#ede1c8" stroke="#cfbb92"/>
+    <path d="M83 83q6-9 11-2t11-1 12 0m-34 6q6-6 12-1t12 0 12 0m-31 6q6-5 12-1t12-1" stroke="#d2a043" stroke-width="3" fill="none"/>
+    <path d="m115 70 18-27m-12 31 18-26" stroke="#6f5744" stroke-width="2"/>
+  </symbol>
+  <symbol id="biscuit" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="127" rx="47" ry="5" fill="#eadfce"/>
+    <rect x="52" y="44" width="95" height="73" rx="8" fill="#e7be75" stroke="#c59b54" stroke-width="2"/>
+    <path d="M59 46v69m81-69v69" stroke="#f5dbab" stroke-width="4" stroke-dasharray="3 3"/>
+    <rect x="72" y="52" width="56" height="55" rx="5" fill="#fff5dd"/>
+    <circle cx="101" cy="80" r="19" fill="#d5a266" stroke="#b7834e" stroke-width="2"/>
+    <g fill="#a97948"><circle cx="94" cy="75" r="2"/><circle cx="105" cy="71" r="2"/><circle cx="110" cy="85" r="2"/><circle cx="96" cy="89" r="2"/><circle cx="101" cy="81" r="2"/></g>
+  </symbol>
+  <symbol id="water" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="26" ry="4" fill="#dce9ed"/>
+    <rect x="89" y="15" width="22" height="12" rx="3" fill="#5999b0"/>
+    <path d="M89 27v15L78 57v66q0 7 8 7h28q8 0 8-7V57l-11-15V27Z" fill="#e4f3f6" stroke="#a8cbd5" stroke-width="2"/>
+    <path d="M84 59v60" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    <path d="M78 73h44v31H78Z" fill="#74acbf"/>
+    <path d="M100 78q-13 18 0 19 13-1 0-19" fill="white"/>
+    <path d="M84 112h32m-32 7h32" stroke="#b2d4de" stroke-width="2"/>
+  </symbol>
+  <symbol id="tea" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="26" ry="4" fill="#e3e5d8"/>
+    <rect x="89" y="17" width="22" height="11" rx="3" fill="#6b8050"/>
+    <path d="M89 28v15L78 57v65q0 8 8 8h28q8 0 8-8V57l-11-14V28Z" fill="#bb8248" stroke="#a16d3c" stroke-width="2"/>
+    <path d="M84 59v62" stroke="#dbb477" stroke-width="4" stroke-linecap="round"/>
+    <path d="M78 73h44v34H78Z" fill="#f2e9cb"/>
+    <path d="M90 95q0-17 22-15-1 18-20 17m-1 0 15-12" fill="#7c9b64" stroke="#5f7e48" stroke-width="2"/>
+  </symbol>
+  <symbol id="soap" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="124" rx="44" ry="5" fill="#e6deec"/>
+    <rect x="57" y="56" width="86" height="54" rx="15" fill="#c5b6d9" stroke="#a592c0" stroke-width="2"/>
+    <rect x="67" y="65" width="66" height="35" rx="12" fill="#e8dff1"/>
+    <path d="m100 72 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z" fill="#a591bd"/>
+    <circle cx="137" cy="43" r="7" fill="#f3edf7" stroke="#d5c8df"/><circle cx="148" cy="29" r="4" fill="#f3edf7" stroke="#d5c8df"/>
+  </symbol>
+  <symbol id="tissue" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="127" rx="44" ry="4" fill="#dfe9e5"/>
+    <rect x="59" y="65" width="82" height="53" rx="8" fill="#80b9a5" stroke="#61a28d" stroke-width="2"/>
+    <path d="M84 75q6-43 20-39l18 38Z" fill="#fff" stroke="#dae8e1" stroke-width="2"/>
+    <path d="M89 79h25" stroke="#4e8e79" stroke-width="4" stroke-linecap="round"/>
+    <path d="M60 95h80v17q0 6-7 6H66q-7 0-7-6Z" fill="#619e88"/>
+  </symbol>
+  <symbol id="fuel" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="33" ry="4" fill="#e9e1cd"/>
+    <path d="M79 43V28q0-6 6-6h29q7 0 7 7v14" fill="none" stroke="#b29b62" stroke-width="7"/>
+    <rect x="76" y="41" width="50" height="87" rx="9" fill="#d9b65f" stroke="#bda052" stroke-width="2"/>
+    <path d="m83 57 35 54m0-54-35 54" stroke="#c8a249" stroke-width="4"/>
+    <rect x="89" y="73" width="25" height="26" rx="4" fill="#fff2c6"/>
+    <path d="M101 77q-14 15 0 17 13-2 0-17" fill="#b79846"/>
+    <rect x="72" y="34" width="16" height="9" rx="2" fill="#4f5b50"/>
+  </symbol>
+  <symbol id="diesel" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="132" rx="33" ry="4" fill="#dce5e4"/>
+    <path d="M79 43V28q0-6 6-6h29q7 0 7 7v14" fill="none" stroke="#698881" stroke-width="7"/>
+    <rect x="76" y="41" width="50" height="87" rx="9" fill="#81a49b" stroke="#648d81" stroke-width="2"/>
+    <path d="m83 57 35 54m0-54-35 54" stroke="#6d9488" stroke-width="4"/>
+    <rect x="86" y="74" width="31" height="23" rx="3" fill="#eff7ec"/>
+    <text x="101" y="89" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="bold" fill="#466f62">SOLAR</text>
+    <rect x="72" y="34" width="16" height="9" rx="2" fill="#4e655f"/>
+  </symbol>
+  <symbol id="sachet" viewBox="0 0 200 150">
+    <ellipse cx="100" cy="130" rx="31" ry="4" fill="#eaded7"/>
+    <path d="M76 27h48l6 98H70Z" fill="#c47b60" stroke="#aa6147" stroke-width="2"/>
+    <path d="M76 32h48m-53 87h58" stroke="#edb59b" stroke-width="4" stroke-dasharray="3 2"/>
+    <rect x="77" y="49" width="46" height="54" rx="5" fill="#f8edda"/>
+    <path d="M88 74h23v14q-1 10-12 10T88 88Z" fill="#c5a47a"/><path d="M112 78q16-1 7 13h-8" fill="none" stroke="#c5a47a" stroke-width="3"/>
+    <path d="M96 67q-5-5 0-11m10 11q-5-5 0-11" fill="none" stroke="#b6a080" stroke-width="2"/>
+  </symbol>
+</svg>

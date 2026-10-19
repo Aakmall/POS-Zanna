@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './retail.css';
+
+@layer base {
+  button, input, select, textarea { font: inherit; }
+  button:not(:disabled), select { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  :root {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body { margin: 0; min-width: 320px; }
+  :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 4px; }
+  ::selection { background: #c9eee5; color: var(--color-ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex; min-height: 48px; align-items: center; justify-content: center;
+    gap: 0.5rem; border: 1px solid transparent; border-radius: var(--radius-control);
+    padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600;
+    transition: background-color 150ms, border-color 150ms, transform 150ms;
+  }
+  .btn:disabled { opacity: 0.5; }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn-primary { background: var(--color-brand); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--color-brand-hover); }
+  .btn-secondary { background: var(--color-surface); border-color: var(--color-line); color: var(--color-ink); }
+  .btn-secondary:hover:not(:disabled), .btn-ghost:hover:not(:disabled) { background: var(--color-surface-muted); }
+  .btn-ghost { color: var(--color-ink-muted); padding-inline: 0.75rem; }
+  .btn-danger { background: var(--color-danger-soft); color: var(--color-danger); }
+  .btn-danger:hover:not(:disabled) { background: #ffe0e4; }
+  .field {
+    display: block; width: 100%; min-height: 48px; border: 1px solid var(--color-line);
+    border-radius: var(--radius-control); padding: 0.7rem 0.875rem;
+    background: var(--color-surface); color: var(--color-ink); font-size: 0.875rem;
+  }
+  .field::placeholder { color: var(--color-ink-muted); }
+  .field-label { display: block; margin-bottom: 0.5rem; font-size: 0.8125rem; font-weight: 600; color: var(--color-ink); }
+  .panel { border: 1px solid var(--color-line); border-radius: var(--radius-panel); background: var(--color-surface); box-shadow: var(--shadow-panel); }
+  .eyebrow { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-brand); }
+  .pill { display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 99px; padding: 0.3rem 0.65rem; font-size: 0.6875rem; font-weight: 600; }
+  .demo-dialog {
+    position: fixed; inset: 0; margin: auto; width: calc(100% - 2rem); max-width: 520px;
+    max-height: calc(100svh - 2rem); overflow-y: auto; overscroll-behavior: contain;
+    padding: 0; border: 1px solid var(--color-line); border-radius: var(--radius-panel);
+    color: var(--color-ink); background: var(--color-surface); box-shadow: 0 24px 80px rgb(20 36 62 / 0.25);
+  }
+  .demo-dialog-wide { max-width: 720px; }
+  .demo-dialog::backdrop { background: rgb(14 28 48 / 0.55); }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--color-line); border-radius: var(--radius-panel); background: var(--color-surface); }
+  .data-table { width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap; font-size: 0.8125rem; }
+  .data-table th { padding: 1rem 1.25rem; background: var(--color-surface-muted); color: var(--color-ink-muted); font-size: 0.6875rem; font-weight: 600; }
+  .data-table td { padding: 1rem 1.25rem; border-top: 1px solid var(--color-line); }
+  .data-table tbody tr:hover { background: var(--color-brand-soft); }
+  .mobile-nav { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+  .skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 50;
+    transform: translateY(-200%);
+    border-radius: var(--radius-control);
+    padding: 0.75rem 1rem;
+    color: var(--color-ink);
+    background: var(--color-surface);
+  }
+  .skip-link:focus { transform: translateY(0); }
+}

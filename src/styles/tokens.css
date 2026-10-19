@@ -1,0 +1,24 @@
+@theme {
+  --font-sans: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-navy: #14243e;
+  --color-brand: #0b7b75;
+  --color-brand-hover: #066760;
+  --color-brand-soft: #eaf7f4;
+  --color-sidebar: #147e79;
+  --color-sidebar-muted: #effcf8;
+  --color-canvas: #f7f9fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f2f6f6;
+  --color-ink: #26383c;
+  --color-ink-muted: #607176;
+  --color-line: #e6eded;
+  --color-success: #176548;
+  --color-success-soft: #eaf6ef;
+  --color-warning: #925a0b;
+  --color-warning-soft: #fff7e5;
+  --color-danger: #b42336;
+  --color-danger-soft: #fff0f1;
+  --radius-control: 0.625rem;
+  --radius-panel: 0.875rem;
+  --shadow-panel: 0 4px 20px rgb(31 63 65 / 0.045);
+}
