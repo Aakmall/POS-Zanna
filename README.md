@@ -1,18 +1,10 @@
 ﻿# Zanna-Cell — POS-Zanna
 
-Sistem Kasir Warung Campuran. **Revisi Fase 1: Modern Premium Retail POS** melanjutkan fondasi Fase 0 dengan ruang operasional responsif dan data DEMO. Tidak ada pembayaran nyata, backend, database, maupun transaksi yang disimpan permanen.
+Sistem Kasir Warung Campuran. **Fase 2: Responsive Cart, IndexedDB & Product Management** melanjutkan desain teal Fase 1. Master produk/kategori/varian tersimpan lokal; Kasir dan pembayaran tetap DEMO.
 
-## Teknologi dan persyaratan
+## Jalankan
 
-- React 19, TypeScript 6 strict, Vite 8.
-- Tailwind CSS 4 melalui plugin Vite resmi, React Router 7, Lucide React.
-- ESLint beserta React Hooks dan React Refresh dari konfigurasi awal.
-- Node.js 22.13+ pada lini 22, atau Node LTS 24+ yang kompatibel. Lingkungan implementasi: Node 22.18.0, npm 10.9.3.
-- Tidak ada dependency baru pada Fase 1. State memakai React state/context; pengujian logika memakai Node test runner dan compiler TypeScript yang sudah terpasang.
-
-Versi dependency dikunci dalam `package-lock.json`. Tidak ada font CDN, library animasi, chart, atau komponen tambahan. Grafik sederhana menggunakan HTML/CSS dan label nilai yang dapat dibaca pembaca layar.
-
-## Instal dan jalankan
+Node.js 22.13+ pada lini 22 atau LTS 24+ yang kompatibel. Lingkungan implementasi Node 22.18.0, npm 10.9.3.
 
 ```powershell
 cd C:\04-Project-TOKO\POS-Zanna\frontend
@@ -20,151 +12,120 @@ npm ci
 npm run dev
 ```
 
-Buka alamat yang ditampilkan Vite (biasanya http://localhost:5173). Halaman welcome ada di `/`; pilih **Coba kasir DEMO** atau buka `/kasir` langsung.
+Buka alamat dari Vite, biasanya http://localhost:5173. `/produk` adalah manajemen produk lokal; `/kasir` adalah simulasi belanja. Database produk mulai kosong. Tambahkan kategori/produk sendiri atau tekan **Isi Data Demo** dan konfirmasi.
 
-Untuk mencoba tablet di jaringan lokal yang sama:
+Untuk tablet pada LAN yang sama:
 
 ```powershell
 npm run dev -- --host 0.0.0.0
 ```
 
-Buka alamat Network dari terminal di tablet. Firewall komputer perlu mengizinkan port development server pada jaringan privat. Tidak memerlukan kamera, Bluetooth, atau printer untuk simulasi. Ini bukan PWA dan tidak menyediakan jaminan offline.
+Gunakan alamat Network di terminal dan izinkan firewall jaringan privat bila diperlukan. **localhost, IP LAN, port lain, browser lain, dan perangkat lain memiliki database berbeda.** Data belum disinkronkan.
 
-## Verifikasi kode
+## Pemeriksaan kode
 
 ```powershell
 npm run lint
 npx tsc --noEmit -p tsconfig.app.json
-node --test scripts/demo-logic.test.mjs
+npm run typecheck
+npm test
 npm run build
 ```
 
-`npm run build` memeriksa TypeScript aplikasi dan konfigurasi Vite sebelum membuat `dist/`. Gunakan `npm run preview` untuk pratinjau lokal hasil build. File `dist/` adalah hasil generate; edit sumber di `src/`.
+Typecheck memeriksa aplikasi, konfigurasi Vite, dan test TypeScript. Tes menggunakan Node runner, tsx, fake-indexeddb, dan jsdom. Hasil build tersedia di `dist/`; gunakan `npm run preview` untuk pratinjau. Edit sumber di `src/`, bukan hasil build. Hosting memerlukan fallback SPA ke `index.html` untuk pembukaan langsung rute.
 
-Enam pengujian logika mencakup batas stok dan kuantitas, total harga termasuk solar, keranjang tidak valid, parsing uang, agregasi laporan, dan pengurangan kuantitas ketika stok/harga berubah. Pengujian ini bukan pengujian DOM atau visual browser.
+Tes DOM mensimulasikan breakpoint 390, 768, 1024, dan 1366px; **bukan pengujian visual browser/Android**. Ukuran pixel, overlap, native focus trap, dan keyboard virtual harus diperiksa manual.
 
-## Halaman dan rute
+## Teknologi
 
-| Rute | Isi |
+React 19, TypeScript 6 strict, Vite 8, Tailwind 4, React Router 7, Lucide React. Fase 2 menambahkan **Dexie 4** untuk IndexedDB. Dependency development: fake-indexeddb (IndexedDB pada tes Node), tsx (menjalankan TS/TSX), jsdom dan tipenya (tes DOM). Tidak ada state management library, backend, database cloud, atau library sinkronisasi.
+
+## Halaman
+
+| Rute | Perilaku |
 | --- | --- |
-| `/` | Welcome Fase 0 yang diperbarui dengan akses kasir DEMO |
-| `/dashboard` | Empat kartu statistik, transaksi contoh, dan perhatian stok |
-| `/kasir` | Katalog, kategori, pencarian, keranjang, dan alur pembayaran DEMO |
-| `/produk` | Tabel, pencarian/filter, form tambah/edit produk sesi |
-| `/stok` | Ringkasan stok, filter stok rendah, penyesuaian dan riwayat contoh |
-| `/bon` | Pelanggan & Bon: pelanggan fiktif, rincian utang, simulasi cicilan |
-| `/laporan` | Rentang tanggal, omzet/laba kotor contoh, grafik dan tabel |
-| `/pengaturan` | Warung, pengguna, printer, backup, informasi aplikasi |
-| Rute lainnya | 404 sisi klien dengan tautan ke beranda |
+| `/` | Welcome dan akses master lokal / Kasir DEMO |
+| `/dashboard` | Penjualan sampel tetap; stok aktual belum dihitung |
+| `/produk` | CRUD lokal, detail, aktif/nonaktif, pencarian/filter, kategori, varian, seed eksplisit |
+| `/kasir` | Katalog varian dari IndexedDB; keranjang/pembayaran DEMO |
+| `/stok` | Konfigurasi minimum stok dari master; tidak ada saldo/ledger |
+| `/bon` | Pelanggan dan cicilan fiktif pada state halaman |
+| `/laporan` | Sampel tetap 13–19 Oktober 2026, bukan checkout sesi |
+| `/pengaturan` | Rancangan preferensi, printer, backup, informasi aplikasi |
+| Rute lainnya | 404 sisi klien |
 
-Hosting produksi memerlukan fallback permintaan URL aplikasi ke `index.html`, agar BrowserRouter bekerja ketika URL dibuka langsung atau di-refresh.
-
-## Struktur dan tanggung jawab
+## Struktur
 
 ```text
 frontend/
-├── scripts/demo-logic.test.mjs
+├── docs/
+│   ├── PRODUCT-DATA-MODEL.md
+│   └── PHASE-2-LEARNING.md
+├── scripts/                    # Tes logika, repository, DOM + loader aset tes
 ├── src/
-│   ├── app/
-│   │   ├── App.tsx
-│   │   ├── routes.tsx
-│   │   ├── navigation.ts
-│   │   ├── DemoProvider.tsx
-│   │   └── demoContext.ts
-│   ├── assets/                 # Sprite SVG placeholder kategori lokal
-│   ├── components/
-│   │   ├── layout/             # Welcome shell dan operational shell
-│   │   └── ui/                 # Button, Dialog, EmptyState, PageHeader, dll.
-│   ├── features/
-│   │   ├── cashier/            # Halaman, kartu produk, keranjang, pembayaran, logika
-│   │   ├── credit/             # Bon dan dialog rincian/cicilan
-│   │   ├── dashboard/
-│   │   ├── home/
-│   │   ├── not-found/
-│   │   ├── products/           # Daftar dan form produk
-│   │   ├── reports/
-│   │   ├── settings/
-│   │   └── stock/              # Daftar dan form penyesuaian
-│   ├── hooks/useDemoStore.ts
-│   ├── lib/                    # Format IDR, ID sesi, agregasi laporan
-│   ├── mocks/                  # Produk, pelanggan, penjualan ilustrasi
-│   ├── services/catalogRepository.ts
-│   ├── styles/                 # globals.css dan tokens.css
-│   ├── types/pos.ts
+│   ├── app/                    # Provider/context, navigasi, router
+│   ├── assets/                 # Ilustrasi placeholder SVG lokal
+│   ├── components/{layout,ui}/
+│   ├── data/                   # Dexie, skema v1, satuan, repository lokal, seed
+│   ├── domain/                 # Model, repository interface, UUID, validasi, parser
+│   ├── features/               # Produk, Kasir, Dashboard, Stok, Bon, dst.
+│   ├── hooks/                  # Context dan breakpoint tunggal Kasir
+│   ├── lib/                    # Formatting dan agregasi demo
+│   ├── mocks/                  # Fixture seed eksplisit / laporan fiktif
+│   ├── services/               # Composition root dan proyeksi katalog
+│   ├── styles/                 # Tokens, base, responsive retail
+│   ├── types/                  # Read model CatalogItem dan tipe demo UI
 │   └── main.tsx
-└── README.md
+└── package.json
 ```
 
-`CatalogRepository` adalah boundary pembacaan katalog. Implementasi `demoCatalogRepository` hanya menyalin data lokal, tanpa request jaringan dan tanpa mengklaim sebagai API/backend. Implementasi Spring Boot dapat diintegrasikan pada fase terpisah. Logika kuantitas dan perhitungan keranjang dipisahkan dalam `cartLogic.ts`.
+## Arsitektur dan belajar
 
-Aset `src/assets/product-placeholders.svg` berisi ilustrasi placeholder lokal, tanpa foto atau identitas merek pihak lain. `ProductArtwork` memilih ilustrasi produk atau fallback kategori. Aplikasi tidak mengunduh gambar eksternal saat digunakan.
+- [Model produk, satuan, barcode, database v1, kebijakan demo, Future Backend & Synchronization](docs/PRODUCT-DATA-MODEL.md)
+- [Penjelasan file, alur Component → Repository → Dexie → IndexedDB, contoh pemanggilan, dan tiga latihan](docs/PHASE-2-LEARNING.md)
 
-## Desain dan aksesibilitas
+Master memakai UUID stabil, metadata ISO UTC, harga integer rupiah, serta kuantitas integer berskala 1000. Modal tidak diketahui dan harga belum diatur memakai null. Barcode/SKU hanya pada varian, unik termasuk yang nonaktif. Satuan dasar tidak diganti setelah tersimpan. Tidak ada hard delete produk.
 
-- Token bersama direvisi menjadi teal/turquoise, latar sangat terang, kartu putih, border halus, dan shadow lembut. Warna success, warning, dan danger tetap semantik; navy disimpan sebagai token sekunder. Identitas Zanna-Cell tetap mandiri.
-- Mulai 1024px, sidebar menjadi rail ikon 80px untuk tablet landscape. Mulai 1280px, sidebar teal selebar 224px bisa diringkas lewat tombol. Layar lebih sempit memakai navigasi bawah Dashboard/Kasir/Produk dan dialog semua menu. Sidebar menampilkan identitas Operator Demo.
-- Mulai 1024px, keranjang berada di kiri (320px; 340px pada desktop) dan katalog di kanan. Tablet portrait/ponsel memakai tombol ringkasan dan dialog keranjang. Jumlah kolom produk mengikuti lebar katalog melalui CSS container query.
-- Dialog native menyediakan modal/focus containment, Escape, pemulihan fokus, serta penguncian scroll halaman. Tombol tutup selalu tersedia.
-- Navigasi menggunakan active state dan label aksesibel saat sidebar diringkas. Kontrol sentuh minimal 44px, tombol utama 48px. Form diberi label, status/error memakai live region, dan tabel dapat digeser dengan keyboard pada layar sempit.
-- Skip link, fokus keyboard, ikon dekoratif tersembunyi, font sistem, dan `prefers-reduced-motion` dipertahankan.
-- Tailwind mengikuti [integrasi Vite resmi](https://tailwindcss.com/docs/installation/using-vite). Router menggunakan [mode deklaratif](https://reactrouter.com/start/declarative/installation).
+Database `zanna-cell-db`, skema 1, terdiri dari products/categories/units/variants. Initialize hanya mengisi referensi satuan, tanpa produk/kategori otomatis. Isi Data Demo menambahkan 12 master dan 15 varian berlabel DEMO secara idempoten; tidak menimpa data pengguna. Bensin tetap tanpa harga, solar sampel Rp13.000/liter. Seluruh gambar berupa aset lokal/placeholder kategori.
 
-## Data dan batas simulasi
+## Checklist manual Fase 2
 
-Semua layar operasional menampilkan **DEMO** dan informasi bahwa tidak ada pembayaran nyata.
+1. Uji 390×844, 768×1024, 1024×768, 1366×768. Pada layar sempit, tombol Keranjang harus terlihat di atas navigasi bawah dengan jumlah dan total. Pada layar lebar, panel kiri tersedia.
+2. Tambahkan item, ubah orientasi/viewport, buka drawer, tambah/kurangi/hapus, Bayar, tutup dengan tombol/Escape/backdrop. Periksa safe-area, scroll, fokus kembali, keyboard Android, dan tidak ada overflow halaman.
+3. Pada origin baru, pastikan katalog kosong. Tambah kategori, produk tanpa barcode/modal, lalu refresh dan tutup/buka browser pada origin sama; data harus tetap tersedia.
+4. Edit nama/harga, detail UUID, status aktif/nonaktif. Cari nama/SKU/barcode, filter kategori/status; pastikan produk nonaktif tidak ditawarkan di Kasir.
+5. Konfigurasi varian bungkus/dus, bensin 1/1,5/5 L, gram/kg dan ml/liter. Coba konversi nol/negatif/lintas dimensi, nama spasi, harga negatif/format ribuan, barcode/SKU duplikat.
+6. Klik Isi Data Demo dua kali. Sampel tidak boleh bertambah dua kali atau menimpa produk pengguna. Jika terjadi konflik SKU, seed dibatalkan.
+7. Masukkan produk ke keranjang, ubah harga/status dari menu atau tab lain, kembali ke Kasir: total mengikuti master dan produk nonaktif menghalangi pembayaran DEMO. Kuantitas aktual variable belum dapat dijual.
+8. Pastikan checkout DEMO tidak menambah transaksi/bon atau mengurangi stok. Refresh mengosongkan keranjang, bukan master.
+9. Periksa loading/error, izin penyimpanan browser, fokus keyboard, zoom, kontras dan reduced-motion. Pengujian visual/tablet belum dilakukan agen.
 
-- Katalog berisi 14 produk contoh dalam kategori Sembako, Makanan, Minuman, Bensin, Solar, dan Eceran, termasuk kopi susu sachet. Filter Semua tersedia.
-- Harga bensin dimulai sebagai `null` dengan teks **Harga belum diatur**. Produk tanpa harga tidak dapat masuk keranjang. Harga solar Rp13.000/liter mengikuti arahan; harga lain adalah ilustrasi DEMO.
-- Kuantitas berupa satuan utuh. Bensin dikatalogkan per kemasan, solar per liter utuh. Penjualan kuantitas pecahan belum didukung.
-- Harga dan nominal uang memakai rupiah bulat. Form nominal menerima angka tanpa titik/koma; nilai negatif, pecahan, dan angka tidak aman ditolak.
-- Produk, stok, dan keranjang dibagikan selama berada di layout operasional. Berpindah antar-menu mempertahankannya. Refresh atau kembali ke welcome lalu masuk lagi mereset state operasional.
-- Checkout memvalidasi ulang harga dan stok saat ini. Konfirmasi DEMO hanya menampilkan hasil; tidak mengurangi stok, menambahkan bon, atau memasukkan transaksi ke laporan. Selesai/menutup hasil sukses mengosongkan keranjang.
-- QRIS hanya ikon penanda, bukan QR yang dapat dipindai. Bon meminta pelanggan fiktif; Tunai menampilkan contoh kembalian. Proses simulasi bisa dibatalkan dengan menutup dialog.
-- Cetak struk hanya menampilkan informasi simulasi, tanpa perintah printer. Barcode tidak mengakses kamera atau scanner.
-- Tombol **Coba state error** pada Kasir menampilkan error katalog. **Muat ulang katalog demo** menampilkan loading lalu mengembalikan produk/stok awal. Produk tambahan yang hilang dapat menyebabkan keranjang tidak valid; kosongkan keranjang untuk melanjutkan.
-- Riwayat penyesuaian stok, cicilan bon, dan pengaturan bersifat lokal pada halaman masing-masing; meninggalkan halaman mereset bagian ini. Perubahan stok katalog tetap ada selama layout operasional aktif.
-- Dashboard/laporan memakai sampel tetap **13–19 Oktober 2026**, bukan tanggal sistem atau hasil checkout sesi. Laba kotor berasal dari modal contoh; belum termasuk biaya operasional. Rentang tanpa sampel menampilkan empty state.
-- Pengaturan warung adalah pratinjau form dan tidak mengubah identitas header. Pengguna tidak memiliki login atau hak akses nyata. Backup/pemulihan belum membuat atau membaca file.
+## Keterbatasan
 
-## Checklist manual
+IndexedDB bukan backup permanen. Menghapus site data, mode privat, eviction atau kerusakan perangkat bisa menghilangkan data. Backup/restore belum dibuat. Tidak ada proteksi owner terhadap harga modal, autentikasi produksi, API, Spring Boot, PostgreSQL, sync engine, background sync, ledger, stok otomatis, transaksi nyata, pembayaran, PWA, impor Excel, atau printer/scanner nyata.
 
-Agen tidak melakukan pengujian visual browser atau tablet. Silakan periksa:
+Fase 2 berhenti di sini. Evaluasi manual pengguna diperlukan sebelum fase berikutnya.
 
-1. Buka welcome, akses Kasir, seluruh menu, URL tidak dikenal, back/forward, serta refresh URL langsung.
-2. Desktop, tablet Android Tecno landscape/portrait, dan ponsel: navigasi, layout kartu, dialog, scroll tabel, tombol keranjang, safe-area, dan tidak ada scroll horizontal halaman.
-3. Cari nama produk, filter tiap kategori, pencarian kosong/tidak cocok, stok habis, dan produk bensin tanpa harga.
-4. Tambah item; tambah/kurangi hingga batas stok; hapus/kosongkan keranjang; pindah menu dan kembali ke Kasir.
-5. Tambah/edit produk; coba SKU duplikat, harga kosong, negatif/pecahan, dan batas stok. Pastikan perubahan tampil di Kasir dan Stok.
-6. Sesuaikan stok menjadi rendah/habis; lihat status dan riwayat. Periksa validasi checkout jika stok produk dalam keranjang diturunkan.
-7. Tunai: uang kurang, uang pas, kembalian; QRIS: label simulasi; Bon: pelanggan belum dipilih dan sudah dipilih; loading, batal, hasil sukses, dan simulasi cetak.
-8. Klik Coba state error, lalu muat ulang katalog; pastikan empty, loading, error, dan sukses mudah dipahami.
-9. Bon: rincian pelanggan, cicilan lebih besar dari saldo, cicilan sebagian/lunas; pastikan label DEMO tetap jelas.
-10. Laporan: rentang sampel, rentang kosong, tanggal terbalik, dan ringkasan mengikuti filter.
-11. Pengaturan warung/printer, informasi pengguna, rancangan backup, dan informasi aplikasi.
-12. Keyboard Tab/Shift+Tab, skip link, fokus dialog/Escape/kembali ke pemicu, zoom, kontras, sentuhan, dan reduced-motion.
+## File Fase 2
 
-## Batas fase
+Baru:
 
-Tidak ada backend Spring Boot, IndexedDB/localStorage, autentikasi produksi, transaksi permanen, pembayaran sungguhan, sinkronisasi, service worker/PWA offline, atau integrasi printer/barcode. Backend akan dikembangkan secara terpisah melalui IntelliJ IDEA pada fase berikutnya. Fase 1 berhenti pada antarmuka DEMO; lanjut Fase 2 setelah pengujian manual pengguna.
+- `src/domain/{product,productRepository,quantity,validation,id}.ts`
+- `src/data/{database,units,demoSeed,dexieProductRepository}.ts`
+- `src/services/productRepository.ts`, `src/hooks/useWideCashier.ts`
+- `src/features/products/{VariantFields,CategoryManager,ProductDetails}.tsx`
+- `scripts/{product-repository.test.ts,cart-ui.test.tsx,test-assets.mjs,asset-loader.mjs}`
+- `tsconfig.tests.json`, `docs/PRODUCT-DATA-MODEL.md`, `docs/PHASE-2-LEARNING.md`
 
-## Revisi visual Fase 1
+Perubahan utama:
 
-Komposisi referensi diterapkan sebagai arah tata letak, proporsi, dan ritme visual. Logo, nama, ilustrasi, dan konten tetap milik implementasi Zanna-Cell; tidak memakai aset PosyMart.
+- `src/app/{DemoProvider.tsx,demoContext.ts}`: snapshot database dan satu state keranjang.
+- `src/services/catalogRepository.ts`, `src/types/pos.ts`, `src/mocks/products.ts`: proyeksi CatalogItem dan pemisahan identitas varian/master.
+- `src/features/products/{ProductsPage,ProductForm}.tsx`: CRUD lokal nyata.
+- `src/features/cashier/{CashierPage,CartPanel,ProductCard,PaymentDialog}.tsx`, `cartLogic.ts`, `useCart.ts`: responsive cart, master lokal, validasi status/harga terbaru.
+- `src/components/ui/{Dialog,CatalogState,ProductArtwork,ProductMark}.tsx`: mode lokal/demo, viewport, error data dan fallback kategori dinamis.
+- `src/features/{stock/StockPage,dashboard/DashboardPage,home/HomePage,settings/SettingsPage}.tsx` serta layout welcome/operasional: batas Fase 2 dan label data lokal.
+- `src/styles/{globals,retail}.css`, `scripts/demo-logic.test.mjs`, `package.json`, `package-lock.json`, README.
+- Import tipe UI di fitur pendukung mengikuti nama `CatalogItem`; domain `Product` terpisah.
 
-- Topbar menampilkan judul/deskripsi halaman, pencarian produk di Kasir (desktop), notifikasi nonaktif tanpa badge/server palsu, dan identitas demo. Tekan Enter pada pencarian topbar untuk menuju `/kasir?q=...`.
-- Dashboard mengutamakan Total Penjualan, Total Transaksi, Jumlah Pelanggan, dan Produk Stok Rendah. Tanggal sampel tetap ditampilkan; tidak ada persentase tren yang dibuat-buat.
-- Kasir memakai panel keranjang kiri, katalog kanan, thumbnail lokal, tombol tambah, kategori chips, dan pilihan Tunai/QRIS/Bon sebelum tombol **Bayar**. **Kosongkan** menampilkan feedback yang juga dibaca live region.
-- Sidebar, Produk, Stok, Pelanggan & Bon, Laporan, Pengaturan, modal pembayaran, dan welcome mengikuti warna/treatment komponen bersama.
-
-File baru revisi: `src/styles/retail.css`, `src/components/ui/ProductArtwork.tsx`, dan `src/assets/product-placeholders.svg`. File utama yang diubah: `OperationalLayout.tsx`, `CashierPage.tsx`, `CartPanel.tsx`, `ProductCard.tsx`, `DashboardPage.tsx`, `StatCard.tsx`, `ProductMark.tsx`, tokens/CSS global, navigation, types, mock products, ProductForm, CreditPage, HomePage, cartLogic, tes logika, metadata/favikon, dan README. Dependency tidak berubah.
-
-Pemeriksaan manual tambahan:
-
-1. Bandingkan komposisi Dashboard dan Kasir dengan referensi; periksa sidebar teal, kartu, tipografi, proporsi panel, dan kepadatan informasi.
-2. Uji sidebar pada 1024px, desktop 1280px+, tombol ringkas/perluas, tooltip/label aksesibel, serta navigasi bawah pada tablet portrait.
-3. Cari melalui topbar, tekan Enter, lalu ubah/reset pencarian katalog. Periksa filter Bensin, Solar, Eceran dan fallback ilustrasi produk baru.
-4. Uji feedback tambah, perubahan jumlah, hapus/kosongkan, pemilihan metode, tombol Bayar, dialog, dan reduced-motion.
-5. Periksa thumbnail pada hasil build dan pastikan tidak ada permintaan gambar ke domain eksternal.
-
-Fondasi tipe `Product`, `CartLine`, nilai harga nullable, data mock terpisah, dan `CatalogRepository` tetap tersedia untuk fase database. Fase tersebut masih memerlukan skema, implementasi persistensi, validasi transaksi atomik, serta strategi migrasi/backup; belum ada implementasinya pada revisi ini.
-
+`StockAdjustment.tsx` demo lama dilepas karena stok aktual/ledger belum dibuat. Tidak ada pengurangan/penyesuaian stok permanen pada Fase 2. `dist/` diperbarui melalui build, bukan diedit manual. Tidak ada Git commit.

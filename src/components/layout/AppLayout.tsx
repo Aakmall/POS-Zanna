@@ -1,4 +1,4 @@
-import { ArrowUpRight, House, Store } from 'lucide-react'
+﻿import { ArrowUpRight, House, Store } from 'lucide-react'
 import { NavLink, Outlet, Link } from 'react-router'
 import { Badge } from '../ui/Badge'
 import { useEffect } from 'react'
@@ -32,13 +32,13 @@ export function AppLayout() {
         <div className="mt-auto hidden border-t border-line pt-5 lg:block">
           <p className="text-xs font-semibold text-ink">Dibangun selangkah demi selangkah.</p>
           <p className="mt-2 text-xs leading-5 text-ink-muted">Fondasi yang sederhana untuk kebutuhan warung sehari-hari.</p>
-          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 1</span>
+          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 2</span>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col">
         <header className="flex min-h-20 flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-5 py-4 sm:px-8 xl:px-12">
           <p className="text-sm font-medium text-ink-muted">Sistem Kasir Warung Campuran</p>
-          <Badge>Antarmuka DEMO</Badge>
+          <Badge>Master lokal / Kasir DEMO</Badge>
         </header>
         <main id="konten-utama" tabIndex={-1} className="mx-auto w-full max-w-[1320px] flex-1 px-5 py-8 outline-none sm:px-8 sm:py-10 xl:px-12 xl:py-12">
           <Outlet />
@@ -51,3 +51,4 @@ export function AppLayout() {
     </div>
   )
 }
+

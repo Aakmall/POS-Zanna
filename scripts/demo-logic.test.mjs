@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+﻿import { readFile } from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import ts from 'typescript'
@@ -29,13 +29,13 @@ test('kuantitas dibatasi stok, bilangan bulat, dan harga yang telah diatur', () 
   assert.deepEqual(setCartQuantity(cart, { ...rice, price: null }, 0), [])
 })
 test('subtotal dan total sesuai harga per satuan, termasuk solar', () => {
-  const quote = quoteCart([{ productId: 'p1', quantity: 2 }, { productId: 'p13', quantity: 3 }], demoProducts)
+  const quote = quoteCart([{ variantId: 'p1', quantity: 2 }, { variantId: 'p13', quantity: 3 }], demoProducts)
   assert.equal(quote.total, 69000)
   assert.equal(quote.itemCount, 5)
   assert.equal(quote.valid, true)
 })
 test('kuantitas tetap bisa dikurangi setelah stok atau harga berubah', () => {
-  const cart = [{ productId: rice.id, quantity: 5 }]
+  const cart = [{ variantId: rice.id, quantity: 5 }]
   const changed = { ...rice, stock: 2, price: null }
   const reduced = setCartQuantity(cart, changed, 4)
   assert.equal(reduced[0].quantity, 4)
@@ -45,10 +45,10 @@ test('kuantitas tetap bisa dikurangi setelah stok atau harga berubah', () => {
 })
 test('checkout ditolak untuk produk hilang, harga belum diatur, stok berubah, dan keranjang kosong', () => {
   assert.equal(quoteCart([], demoProducts).valid, false)
-  assert.equal(quoteCart([{ productId: 'missing', quantity: 1 }], demoProducts).valid, false)
-  assert.equal(quoteCart([{ productId: 'p10', quantity: 1 }], demoProducts).valid, false)
-  assert.equal(quoteCart([{ productId: 'p1', quantity: 3 }], [{ ...rice, stock: 2 }]).valid, false)
-  assert.equal(quoteCart([{ productId: 'p1', quantity: 2 }], [{ ...rice, price: Number.MAX_SAFE_INTEGER }]).valid, false)
+  assert.equal(quoteCart([{ variantId: 'missing', quantity: 1 }], demoProducts).valid, false)
+  assert.equal(quoteCart([{ variantId: 'p10', quantity: 1 }], demoProducts).valid, false)
+  assert.equal(quoteCart([{ variantId: 'p1', quantity: 3 }], [{ ...rice, stock: 2 }]).valid, false)
+  assert.equal(quoteCart([{ variantId: 'p1', quantity: 2 }], [{ ...rice, price: Number.MAX_SAFE_INTEGER }]).valid, false)
 })
 test('isian uang menolak pecahan, eksponen, negatif, kosong, dan angka tidak aman', () => {
   assert.equal(parseWholeAmount('50000'), 50000)
@@ -61,3 +61,4 @@ test('ringkasan laporan dan pengelompokan harian cocok dengan sampel', () => {
   assert.deepEqual(groupSalesByDay(today), [{ date: '2026-10-19', total: 161000 }])
   assert.deepEqual(summarizeSales([]), { revenue: 0, profit: 0, count: 0, average: 0 })
 })
+

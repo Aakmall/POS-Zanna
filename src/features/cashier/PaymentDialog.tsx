@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Banknote, Check, Printer, QrCode } from 'lucide-react'
 import { Dialog } from '../../components/ui/Dialog'
 import { Button } from '../../components/ui/Button'
@@ -16,6 +16,9 @@ export function PaymentDialog({ method, quote, onClose, onComplete }: { method: 
   const timer = useRef<number | undefined>(undefined)
   const completed = useRef(false)
   const received = parseWholeAmount(cash)
+  const currentQuote = useRef(quote)
+  const [resultTotal, setResultTotal] = useState<number | null>(null)
+  useEffect(() => { currentQuote.current = quote }, [quote])
   useEffect(() => () => window.clearTimeout(timer.current), [])
   function finish() {
     if (status === 'success' && !completed.current) { completed.current = true; onComplete() }
@@ -28,13 +31,19 @@ export function PaymentDialog({ method, quote, onClose, onComplete }: { method: 
     if (method === 'Tunai' && (received === null || received < quote.total)) { setError('Masukkan uang tunai dalam rupiah bulat, minimal sebesar total.'); return }
     if (method === 'Bon' && !customer) { setError('Pilih pelanggan contoh untuk simulasi bon.'); return }
     setError(''); setStatus('processing')
-    timer.current = window.setTimeout(() => setStatus('success'), 700)
+    const signature = JSON.stringify(quote.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive]))
+    timer.current = window.setTimeout(() => {
+      const latest = currentQuote.current
+      const latestSignature = JSON.stringify(latest.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive]))
+      if (!latest.valid || signature !== latestSignature) { setError('Master atau keranjang berubah. Periksa kembali total dan konfirmasi ulang.'); setStatus('idle'); return }
+      setResultTotal(quote.total); setStatus('success')
+    }, 700)
   }
   return <Dialog title={status === 'success' ? 'Simulasi selesai' : `Pembayaran ${method}`} onClose={finish}>
     {status === 'success' ? <div className="text-center"><span className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-success-soft text-success"><Check size={30} aria-hidden="true" /></span>
       <h3 className="text-xl font-semibold" role="status">Berhasil disimulasikan · DEMO</h3><p className="mt-3 text-sm leading-6 text-ink-muted">Tidak ada pembayaran nyata atau transaksi tersimpan. Stok dan daftar bon tidak berubah.</p>
-      <p className="my-6 text-3xl font-bold text-brand">{money(quote.total)}</p>
-      {method === 'Tunai' && received !== null && <p className="mb-5 text-sm text-ink-muted">Kembalian contoh: <strong className="text-ink">{money(received - quote.total)}</strong></p>}
+      <p className="my-6 text-3xl font-bold text-brand">{money(resultTotal ?? 0)}</p>
+      {method === 'Tunai' && received !== null && resultTotal !== null && <p className="mb-5 text-sm text-ink-muted">Kembalian contoh: <strong className="text-ink">{money(received - resultTotal)}</strong></p>}
       {printNote && <p role="status" className="mb-4 rounded-xl bg-brand-soft p-3 text-sm text-brand">Cetak struk hanya simulasi. Tidak ada perintah yang dikirim ke printer.</p>}
       <div className="grid gap-3"><Button variant="secondary" onClick={() => setPrintNote(true)}><Printer size={18} aria-hidden="true" />Simulasikan cetak struk</Button><Button onClick={finish}>Selesai tanpa struk</Button></div>
     </div> : <form onSubmit={submit} className="space-y-5">
@@ -51,3 +60,5 @@ export function PaymentDialog({ method, quote, onClose, onComplete }: { method: 
     </form>}
   </Dialog>
 }
+
+

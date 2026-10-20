@@ -1,14 +1,17 @@
-import { createContext, type Dispatch, type SetStateAction } from 'react'
-import type { CartLine, Product } from '../types/pos'
+﻿import { createContext, type Dispatch, type SetStateAction } from 'react'
+import type { CartLine, CatalogItem } from '../types/pos'
+import type { CatalogSnapshot } from '../domain/product'
+import type { ProductRepository } from '../domain/productRepository'
 
 export interface DemoStore {
-  products: Product[]
+  products: CatalogItem[]
+  snapshot: CatalogSnapshot
+  repository: ProductRepository
   cart: CartLine[]
   setCart: Dispatch<SetStateAction<CartLine[]>>
   status: 'loading' | 'ready' | 'error'
+  error: string
   reload: () => void
   simulateError: () => void
-  saveProduct: (product: Product) => void
-  adjustStock: (id: string, stock: number) => void
 }
 export const DemoContext = createContext<DemoStore | null>(null)

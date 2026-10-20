@@ -1,4 +1,4 @@
-import type { DemoSale } from '../types/pos'
+﻿import type { DemoSale } from '../types/pos'
 
 export function summarizeSales(sales: DemoSale[]) {
   const revenue = sales.reduce((sum, sale) => sum + sale.total, 0)
@@ -10,3 +10,4 @@ export function groupSalesByDay(sales: DemoSale[]) {
   sales.forEach((sale) => days.set(sale.date, (days.get(sale.date) ?? 0) + sale.total))
   return [...days].sort(([a], [b]) => a.localeCompare(b)).map(([date, total]) => ({ date, total }))
 }
+

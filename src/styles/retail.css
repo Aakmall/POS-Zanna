@@ -48,7 +48,7 @@
   .payment-method { display: flex; min-height: 44px; align-items: center; justify-content: center; gap: 0.4rem; border: 1px solid var(--color-line); border-radius: 8px; font-size: 11px; color: var(--color-ink-muted); transition: background-color 150ms, border-color 150ms; }
   .payment-method:hover { background: var(--color-surface-muted); }
   .payment-method-active, .payment-method-active:hover { border-color: var(--color-brand); background: var(--color-brand-soft); color: var(--color-brand); font-weight: 600; }
-  .cart-mobile-bar { position: fixed; bottom: calc(5rem + env(safe-area-inset-bottom)); right: 1rem; left: 1rem; z-index: 10; }
+  .cart-launcher { position: fixed; display: block; bottom: calc(5rem + env(safe-area-inset-bottom)); right: max(1rem, env(safe-area-inset-right)); left: max(1rem, env(safe-area-inset-left)); z-index: 40; }
   .demo-dialog[open] { animation: dialog-enter 150ms ease-out; }
   .demo-dialog::backdrop { animation: backdrop-enter 150ms ease-out; }
   @container (min-width: 450px) { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -68,7 +68,6 @@
     .operational-content { padding-bottom: 0; }
     .cashier-layout { grid-template-columns: 320px minmax(0, 1fr); }
     .cashier-cart-desktop { position: sticky; top: 1.5rem; display: block; }
-    .cart-mobile-bar { display: none; }
   }
   @media (min-width: 1280px) {
     .operational-shell { --sidebar-width: 224px; }

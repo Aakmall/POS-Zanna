@@ -1,22 +1,27 @@
-export const categories = ['Sembako', 'Makanan', 'Minuman', 'Bensin', 'Solar', 'Eceran'] as const
+﻿export const categories = ['Sembako', 'Makanan', 'Minuman', 'Bensin', 'Solar', 'Eceran'] as const
 export type Category = typeof categories[number]
 export type ProductIllustration = 'rice' | 'oil' | 'sugar' | 'noodles' | 'biscuit' | 'water' | 'tea' | 'soap' | 'tissue' | 'fuel' | 'diesel' | 'sachet'
 
-export interface Product {
+export interface CatalogItem {
   id: string
   sku: string
   name: string
-  category: Category
+  category: string
   price: number | null
   cost: number | null
   unit: string
-  stock: number
+  stock: number | null
   minimumStock: number
   symbol: string
   illustration?: ProductIllustration
+  productId?: string
+  barcode?: string
+  isActive?: boolean
+  isDemo?: boolean
+  saleMode?: 'fixed' | 'variable'
 }
 
-export interface CartLine { productId: string; quantity: number }
+export interface CartLine { variantId: string; quantity: number }
 export type PaymentMethod = 'Tunai' | 'QRIS' | 'Bon'
 export interface DemoCustomer {
   id: string
@@ -33,3 +38,4 @@ export interface DemoSale {
   total: number
   cost: number
 }
+

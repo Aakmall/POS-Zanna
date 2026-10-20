@@ -13,7 +13,7 @@ export function DashboardPage() {
   const sampleDate = '2026-10-19'
   const sales = demoSales.filter((sale) => sale.date === sampleDate)
   const summary = summarizeSales(sales)
-  const lowStock = products.filter((product) => product.stock <= product.minimumStock).sort((a, b) => a.stock - b.stock)
+  const lowStock = products.filter((product) => product.stock !== null && product.stock <= product.minimumStock).sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0))
 
   return (
     <>
@@ -23,7 +23,7 @@ export function DashboardPage() {
         <StatCard label="Total Penjualan" value={money(summary.revenue)} note="Sampel 19 Okt 2026 · DEMO" icon={Banknote} />
         <StatCard label="Total Transaksi" value={String(summary.count)} note="Transaksi contoh, bukan hasil checkout" icon={ReceiptText} />
         <StatCard label="Jumlah Pelanggan" value={String(demoCustomers.length)} note="Pelanggan fiktif dalam data contoh" icon={Users} />
-        <StatCard label="Produk Stok Rendah" value={status === 'ready' ? String(lowStock.length) : '—'} note="Termasuk stok habis · katalog sesi" icon={AlertTriangle} />
+        <StatCard label="Produk Stok Rendah" value="—" note="Belum dihitung · saldo stok belum dibuat" icon={AlertTriangle} />
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -46,7 +46,7 @@ export function DashboardPage() {
 
         <section className="panel overflow-hidden" aria-labelledby="stock-title">
           <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4"><div><h2 id="stock-title" className="text-sm font-semibold">Persediaan perlu perhatian</h2><p className="mt-1 text-[11px] text-ink-muted">Jaga kebutuhan warung tetap tersedia.</p></div><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning"><PackageCheck size={18} aria-hidden="true" /></span></div>
-          {status !== 'ready' ? <p role="status" className="p-6 text-sm leading-6 text-ink-muted">{status === 'loading' ? 'Menyiapkan katalog DEMO…' : 'Katalog DEMO gagal dimuat. Buka halaman Stok untuk mencoba lagi.'}</p> : lowStock.length === 0 ? <div className="p-6 text-sm leading-6 text-success">Semua stok contoh berada di atas batas minimum.</div> : (
+          {status !== 'ready' ? <p role="status" className="p-6 text-sm leading-6 text-ink-muted">{status === 'loading' ? 'Membaca katalog lokal…' : 'Katalog lokal gagal dimuat. Buka halaman Stok untuk mencoba lagi.'}</p> : lowStock.length === 0 ? <div className="p-6 text-sm leading-6 text-ink-muted">Saldo stok belum dicatat. Siapkan batas minimum pada master produk; inventory ledger tersedia pada fase berikutnya.</div> : (
             <ul className="divide-y divide-line px-5">{lowStock.slice(0, 5).map((product) => <li key={product.id} className="flex items-center gap-3 py-4">
               <ProductMark product={product} small />
               <div className="min-w-0 flex-1"><h3 className="text-xs font-semibold">{product.name}</h3><p className="mt-1.5 text-[11px] text-ink-muted">Minimum {product.minimumStock} {product.unit}</p></div>

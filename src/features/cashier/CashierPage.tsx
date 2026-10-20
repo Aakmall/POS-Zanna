@@ -1,7 +1,10 @@
 ﻿import { useEffect, useRef, useState } from 'react'
 import { ScanLine, Search, ShoppingBag } from 'lucide-react'
 import { useSearchParams } from 'react-router'
-import { categories, type Category, type PaymentMethod, type Product } from '../../types/pos'
+import { Link } from 'react-router'
+import { createPortal } from 'react-dom'
+import { CASHIER_MEDIA, useWideCashier } from '../../hooks/useWideCashier'
+import { type PaymentMethod, type CatalogItem } from '../../types/pos'
 import { useDemoStore } from '../../hooks/useDemoStore'
 import { money } from '../../lib/format'
 import { Button } from '../../components/ui/Button'
@@ -14,11 +17,13 @@ import { PaymentDialog } from './PaymentDialog'
 import { useCart } from './useCart'
 
 export function CashierPage() {
-  const { products, status, simulateError } = useDemoStore()
+  const { products, snapshot, status, simulateError } = useDemoStore()
   const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
-  const [category, setCategory] = useState<Category | 'Semua'>('Semua')
+  const [category, setCategory] = useState('Semua')
+  const categories = snapshot.categories.filter((item) => item.isActive).map((item) => item.name)
   const [drawer, setDrawer] = useState(false)
+  const wide = useWideCashier()
   const [scanner, setScanner] = useState(false)
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('Tunai')
   const [payment, setPayment] = useState<PaymentMethod | null>(null)
@@ -27,9 +32,15 @@ export function CashierPage() {
   const feedbackTimer = useRef<number | undefined>(undefined)
   const cart = useCart(products)
   const quote = { ...cart.quote, valid: cart.quote.valid && status === 'ready' }
-  const filtered = products.filter((product) => product.name.toLocaleLowerCase('id').includes(query.trim().toLocaleLowerCase('id')) && (category === 'Semua' || category === product.category))
+  const filtered = products.filter((product) => product.isActive !== false && `${product.name} ${product.sku} ${product.barcode ?? ''}`.toLocaleLowerCase('id').includes(query.trim().toLocaleLowerCase('id')) && (category === 'Semua' || category === product.category))
 
   useEffect(() => () => window.clearTimeout(feedbackTimer.current), [])
+  useEffect(() => {
+    const media = window.matchMedia(CASHIER_MEDIA)
+    const closeOnWide = () => { if (media.matches) setDrawer(false) }
+    media.addEventListener('change', closeOnWide)
+    return () => media.removeEventListener('change', closeOnWide)
+  }, [])
 
   function updateQuery(value: string) {
     setSearchParams((previous) => {
@@ -40,7 +51,7 @@ export function CashierPage() {
     }, { replace: true })
   }
 
-  function addProduct(product: Product) {
+  function addProduct(product: CatalogItem) {
     cart.add(product)
     setRecentlyAdded(product.id)
     setFeedback(`${product.name} ditambahkan ke keranjang DEMO.`)
@@ -60,7 +71,7 @@ export function CashierPage() {
     <>
       <h1 className="sr-only">Kasir Zanna-Cell — simulasi DEMO</h1>
       <div className="cashier-layout">
-        <div className="cashier-cart-desktop">{panel}</div>
+        {wide && <div className="cashier-cart-desktop">{panel}</div>}
         <section aria-labelledby="catalog-title" className="panel catalog-panel">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div><h2 id="catalog-title" className="font-semibold">Katalog produk</h2><p className="mt-1 text-xs text-ink-muted">Kebutuhan warung, tinggal pilih.</p></div>
@@ -71,22 +82,24 @@ export function CashierPage() {
           <div className="category-chips" role="group" aria-label="Filter kategori">
             {(['Semua', ...categories] as const).map((item) => <button type="button" key={item} onClick={() => setCategory(item)} aria-pressed={category === item} className={`category-chip ${category === item ? 'category-chip-active' : ''}`}>{item}</button>)}
           </div>
-          <div className="my-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted"><span>{status === 'ready' ? `${filtered.length} produk` : 'Katalog'} · Data DEMO</span><span>Ilustrasi kategori</span></div>
-          {status !== 'ready' ? <CatalogState /> : !filtered.length ? <EmptyState title="Produk tidak ditemukan" description="Coba nama lain atau ubah kategori produk." action={<Button variant="secondary" onClick={() => { updateQuery(''); setCategory('Semua') }}>Reset pencarian</Button>} /> : (
+          <div className="my-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted"><span>{status === 'ready' ? `${filtered.length} varian` : 'Katalog'} · Master lokal / Kasir DEMO</span><span>Ilustrasi kategori</span></div>
+          {status !== 'ready' ? <CatalogState /> : !filtered.length ? <EmptyState title="Belum ada varian aktif yang cocok" description="Tambahkan produk lokal, aktifkan varian, atau ubah pencarian dan kategori." action={<div className="flex flex-wrap justify-center gap-2"><Link className="btn btn-primary" to="/produk">Kelola produk</Link><Button variant="secondary" onClick={() => { updateQuery(''); setCategory('Semua') }}>Reset pencarian</Button></div>} /> : (
             <div className="product-grid">
-              {filtered.map((product) => <ProductCard key={product.id} product={product} quantity={cart.cart.find((line) => line.productId === product.id)?.quantity ?? 0} justAdded={recentlyAdded === product.id} onAdd={() => addProduct(product)} />)}
+              {filtered.map((product) => <ProductCard key={product.id} product={product} quantity={cart.cart.find((line) => line.variantId === product.id)?.quantity ?? 0} justAdded={recentlyAdded === product.id} onAdd={() => addProduct(product)} />)}
             </div>
           )}
           <p role="status" aria-live="polite" aria-atomic="true" className="mt-4 rounded-lg bg-brand-soft px-3 py-2.5 text-xs leading-5 text-brand">{feedback}</p>
-          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Harga bensin belum diatur. Solar Rp13.000/liter; harga lainnya adalah contoh DEMO. Penjualan dalam satuan utuh.</p>
-          <details className="mt-4 border-t border-line pt-3 text-xs text-ink-muted"><summary className="min-h-11 cursor-pointer py-3 font-medium">Skenario simulasi</summary><p className="mb-3 leading-5">Coba tampilan katalog gagal dimuat. Memuat ulang akan mengembalikan katalog ke sampel awal.</p><Button variant="secondary" className="text-xs" onClick={simulateError} disabled={status !== 'ready'}>Coba state error</Button></details>
+          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Master dibaca dari IndexedDB. Kasir tetap DEMO, tanpa transaksi tersimpan atau perubahan stok. Varian tanpa harga/jumlah aktual belum dapat dibeli pada simulasi ini.</p>
+          <details className="mt-4 border-t border-line pt-3 text-xs text-ink-muted"><summary className="min-h-11 cursor-pointer py-3 font-medium">Skenario simulasi</summary><p className="mb-3 leading-5">Coba tampilan gagal dimuat. Baca ulang tidak mengubah atau menghapus master lokal.</p><Button variant="secondary" className="text-xs" onClick={simulateError} disabled={status !== 'ready'}>Coba state error</Button></details>
         </section>
       </div>
-      <div className="cart-mobile-bar"><Button className="w-full justify-between shadow-panel" onClick={() => setDrawer(true)}><span className="inline-flex items-center gap-2"><ShoppingBag size={19} aria-hidden="true" />Keranjang ({cart.quote.itemCount})</span><span>{money(cart.quote.total)}</span></Button></div>
+      {!wide && createPortal(<div className="cart-launcher"><Button aria-haspopup="dialog" aria-expanded={drawer} className="w-full justify-between shadow-panel" onClick={() => setDrawer(true)}><span className="inline-flex items-center gap-2"><ShoppingBag size={19} aria-hidden="true" />Keranjang ({cart.quote.itemCount})</span><span>{money(cart.quote.total)}</span></Button></div>, document.body)}
       <div className="h-20 lg:hidden" />
-      {drawer && <Dialog title="Keranjang belanja" onClose={() => setDrawer(false)}>{panel}</Dialog>}
+      {!wide && drawer && <Dialog title="Keranjang belanja" sheet onClose={() => setDrawer(false)}>{panel}</Dialog>}
       {scanner && <Dialog title="Scan barcode belum tersedia" onClose={() => setScanner(false)}><ScanLine size={40} className="mb-4 text-brand" aria-hidden="true" /><p className="text-sm leading-6 text-ink-muted">Kamera dan pemindai barcode belum diimplementasikan. Gunakan pencarian nama produk untuk simulasi.</p><Button className="mt-6 w-full" onClick={() => setScanner(false)}>Mengerti</Button></Dialog>}
       {payment && <PaymentDialog method={payment} quote={quote} onClose={() => setPayment(null)} onComplete={() => { cart.clear(); setPayment(null); setFeedback('Simulasi pembayaran selesai. Keranjang siap untuk belanja berikutnya.') }} />}
     </>
   )
 }
+
+

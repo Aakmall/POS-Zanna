@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { displayDate, money, parseWholeAmount } from '../../lib/format'
@@ -20,3 +20,4 @@ export function CustomerDialog({ customer, onClose, onPay }: { customer: DemoCus
     }}><label className="block"><span className="field-label">Simulasi cicilan tunai (Rp)</span><input className="field" inputMode="numeric" placeholder="Contoh: 25000" value={amount} onChange={(event) => setAmount(event.target.value)} required /></label>{error && <p role="alert" className="text-sm text-danger">{error}</p>}<p className="text-xs leading-5 text-ink-muted">Hanya mengurangi saldo contoh di halaman ini, tanpa menerima uang atau menyimpan pembayaran nyata.</p><Button type="submit" className="w-full">Simulasikan pembayaran cicilan</Button></form> : <p role="status" className="mt-5 rounded-xl bg-success-soft p-4 text-sm text-success">Bon contoh ini sudah lunas.</p>}
   </Dialog>
 }
+

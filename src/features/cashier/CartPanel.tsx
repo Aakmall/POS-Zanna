@@ -3,14 +3,14 @@ import { useId } from 'react'
 import { Button } from '../../components/ui/Button'
 import { ProductMark } from '../../components/ui/ProductMark'
 import { money } from '../../lib/format'
-import type { PaymentMethod, Product } from '../../types/pos'
+import type { PaymentMethod, CatalogItem } from '../../types/pos'
 import type { CartQuote } from './cartLogic'
 
 interface Props {
   quote: CartQuote
   method: PaymentMethod
   onMethodChange: (method: PaymentMethod) => void
-  onChange: (product: Product, quantity: number) => void
+  onChange: (product: CatalogItem, quantity: number) => void
   onRemove: (id: string) => void
   onClear: () => void
   onPay: () => void
@@ -42,17 +42,19 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
               <div className="quantity-control">
                 <button type="button" aria-label={`Kurangi ${product.name}`} onClick={() => onChange(product, quantity - 1)}><Minus size={14} aria-hidden="true" /></button>
                 <span key={quantity} className="quantity-value">{quantity}</span>
-                <button type="button" aria-label={`Tambah ${product.name}`} onClick={() => onChange(product, quantity + 1)} disabled={quantity >= product.stock || product.price === null}><Plus size={14} aria-hidden="true" /></button>
+                <button type="button" aria-label={`Tambah ${product.name}`} onClick={() => onChange(product, quantity + 1)} disabled={(product.stock !== null && quantity >= product.stock) || quantity >= 1_000_000 || product.price === null || product.isActive === false}><Plus size={14} aria-hidden="true" /></button>
               </div>
               <p className="text-[13px] font-semibold tabular-nums">{money(amount)}</p>
             </div>
-            {quantity > product.stock && <p className="mt-2 text-xs text-danger">Kuantitas melebihi stok DEMO. Kurangi atau hapus produk.</p>}
+            {product.stock !== null && quantity > product.stock && <p className="mt-2 text-xs text-danger">Kuantitas melebihi stok DEMO. Kurangi atau hapus produk.</p>}
+            {product.isActive === false && <p className="mt-2 text-xs text-danger">Produk/varian nonaktif. Hapus dari keranjang sebelum melanjutkan.</p>}
           </div>
         ))}
       </div>
       <div className="mt-auto border-t border-line p-5">
         <div className="flex justify-between text-xs text-ink-muted"><span>Subtotal</span><span className="tabular-nums">{money(quote.total)}</span></div>
         <p className="mt-2 text-[10px] text-ink-muted">Tanpa pajak atau diskon pada simulasi ini.</p>
+        <p className="mt-2 text-[10px] leading-5 text-ink-muted">Nama dan harga mengikuti master lokal terbaru. Periksa kembali total sebelum Bayar. Keranjang hanya di memori; stok tidak diubah.</p>
         <div className="my-4 flex flex-wrap justify-between gap-2 border-t border-dashed border-line pt-4"><span className="text-sm font-semibold">Total belanja</span><span className="text-xl font-bold tracking-tight tabular-nums">{money(quote.total)}</span></div>
         {quote.itemCount > 0 && !quote.valid && <p className="mb-4 rounded-lg bg-danger-soft p-3 text-xs leading-5 text-danger" role="alert">Harga, stok, atau katalog tidak valid. Sesuaikan atau kosongkan keranjang.</p>}
         <div className="mb-4 grid grid-cols-3 gap-2" role="group" aria-label="Metode pembayaran DEMO">
@@ -69,3 +71,4 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
     </section>
   )
 }
+

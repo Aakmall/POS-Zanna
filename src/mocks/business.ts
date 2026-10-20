@@ -1,4 +1,4 @@
-import type { DemoCustomer, DemoSale } from '../types/pos'
+﻿import type { DemoCustomer, DemoSale } from '../types/pos'
 
 export const demoCustomers: DemoCustomer[] = [
   { id: 'c1', name: 'Ibu Sari', phone: '08xx-xxxx-0101', paid: 25000, entries: [
@@ -20,3 +20,4 @@ export const demoSales: DemoSale[] = [
   { id: 'DEMO-007', date: '2026-10-19', customer: 'Pelanggan umum', method: 'Tunai', total: 114000, cost: 88000 },
   { id: 'DEMO-008', date: '2026-10-19', customer: 'Pelanggan umum', method: 'QRIS', total: 47000, cost: 35500 },
 ]
+

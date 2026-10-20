@@ -1,7 +1,7 @@
-﻿import type { Product } from '../types/pos'
+﻿import type { CatalogItem } from '../types/pos'
 
 // Semua harga selain solar adalah contoh DEMO, bukan harga milik warung.
-export const demoProducts: Product[] = [
+export const demoProducts: CatalogItem[] = [
   { id: 'p1', illustration: 'rice', sku: 'SB-001', name: 'Beras premium', category: 'Sembako', price: 15000, cost: 13000, unit: 'kg', stock: 42, minimumStock: 10, symbol: 'BR' },
   { id: 'p2', illustration: 'oil', sku: 'SB-002', name: 'Minyak goreng', category: 'Sembako', price: 19000, cost: 16500, unit: 'liter', stock: 18, minimumStock: 5, symbol: 'MG' },
   { id: 'p3', illustration: 'sugar', sku: 'SB-003', name: 'Gula pasir', category: 'Sembako', price: 18000, cost: 15500, unit: 'kg', stock: 4, minimumStock: 5, symbol: 'GP' },
@@ -17,4 +17,5 @@ export const demoProducts: Product[] = [
   { id: 'p13', illustration: 'diesel', sku: 'BM-004', name: 'Solar', category: 'Solar', price: 13000, cost: null, unit: 'liter', stock: 35, minimumStock: 10, symbol: 'SL' },
   { id: 'p14', sku: 'EC-003', name: 'Kopi susu sachet', category: 'Eceran', price: 2000, cost: 1500, unit: 'sachet', stock: 32, minimumStock: 8, symbol: 'KS', illustration: 'sachet' },
 ]
+
 
