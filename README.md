@@ -129,3 +129,7 @@ Perubahan utama:
 - Import tipe UI di fitur pendukung mengikuti nama `CatalogItem`; domain `Product` terpisah.
 
 `StockAdjustment.tsx` demo lama dilepas karena stok aktual/ledger belum dibuat. Tidak ada pengurangan/penyesuaian stok permanen pada Fase 2. `dist/` diperbarui melalui build, bukan diedit manual. Tidak ada Git commit.
+
+## Membuka pembayaran pada layar kecil
+
+Panel keranjang desktop berubah menjadi drawer saat lebar layar di bawah 1024px. Gunakan **Keranjang & Bayar** di bawah layar atau di bagian atas katalog. Tambahkan produk, buka keranjang, pilih Tunai/QRIS/Bon, lalu tekan **Bayar**. Saat keranjang kosong, pembayaran belum dapat dilanjutkan. Kedua tombol membuka keranjang dan total yang sama.
