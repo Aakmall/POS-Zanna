@@ -1,5 +1,7 @@
 ﻿# Panduan Belajar Fase 2
 
+Dokumen ini adalah catatan **Fase 2**. Untuk inventory dan skema v2 gunakan [Panduan Belajar Fase 3](PHASE-3-INVENTORY-LEARNING.md); penjelasan skema v1 di sini adalah konteks sebelum penambahan inventory.
+
 Baca sambil membuka kode. Semua yang ditandai “berfungsi” sudah diimplementasikan; rencana backend/sinkronisasi tidak memiliki implementasi.
 
 ## 1. Peta file penting

@@ -47,6 +47,7 @@ export class DexieProductRepository implements ProductRepository {
       const product: Product = {
         id: old?.id ?? createUuid(), name: draft.name.trim(), categoryId: draft.categoryId, baseUnitId: draft.baseUnitId,
         costPrice: draft.costPrice, costKnown: draft.costKnown, minimumStock: draft.minimumStock, isActive: draft.isActive,
+        unitPolicy: { kind: draft.unitPolicy!.kind, allowedPackagingUnitIds: [...draft.unitPolicy!.allowedPackagingUnitIds] },
         createdAt: old?.createdAt ?? now, updatedAt: now, isDemo: old?.isDemo ?? false,
         ...(old?.demoKey ? { demoKey: old.demoKey } : {}), ...(old?.illustration ? { illustration: old.illustration } : {}),
       }
@@ -75,6 +76,12 @@ export class DexieProductRepository implements ProductRepository {
       const snapshot = await this.getSnapshot()
       const product = snapshot.products.find((item) => item.id === id)
       if (!product) throw new ValidationError('Produk tidak ditemukan.')
+      if (product.updatedAt !== expectedUpdatedAt) throw new ValidationError('Produk sudah diubah di tab lain. Muat ulang sebelum melanjutkan.')
+      if (!isActive) {
+        // Archiving a legacy invalid product must remain possible without guessing a policy.
+        await this.db.products.put({ ...product, isActive: false, updatedAt: nextStamp(product.updatedAt) })
+        return
+      }
       await this.saveProduct({ ...product, expectedUpdatedAt, isActive, variants: snapshot.variants.filter((item) => item.productId === id) })
     })
   }

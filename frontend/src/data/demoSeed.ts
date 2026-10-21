@@ -10,7 +10,8 @@ export function demoDrafts(categories: Category[], units: Unit[]) {
       name: item.id === 'p10' ? 'Bensin' : item.name,
       categoryId: categories.find((category) => category.nameKey === nameKey(item.category))!.id,
       baseUnitId: unitId(code), costPrice: item.cost, costKnown: item.cost !== null,
-      minimumStock: item.minimumStock * 1000, isActive: true,
+      unitPolicy: { kind: ['p10', 'p13'].includes(item.id) ? 'fuel' : 'general', allowedPackagingUnitIds: item.id === 'p10' ? [unitId('botol'), unitId('jeriken')] : item.id === 'p13' ? [unitId('jeriken')] : item.id === 'p4' ? [unitId('dus')] : [] },
+      minimumStock: item.minimumStock === null ? null : item.minimumStock * 1000, isActive: true,
       variants: [{ name: 'Standar', sku: item.sku, sellingUnitId: unitId(code), quantityInBaseUnit: 1000, sellingPrice: item.price, saleMode: 'fixed', isActive: true }],
     }
     if (item.id === 'p10') draft.variants = [

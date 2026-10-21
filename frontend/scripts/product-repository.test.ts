@@ -20,6 +20,7 @@ async function setup() {
   const draft = (): ProductDraft => ({
     name: 'Beras lokal', categoryId: category.id, baseUnitId: unit('kg'), costPrice: null, costKnown: false,
     minimumStock: null, isActive: true,
+    unitPolicy: { kind: 'general', allowedPackagingUnitIds: [] },
     variants: [{ name: 'Standar', sellingUnitId: unit('kg'), quantityInBaseUnit: 1000, sellingPrice: 15000, saleMode: 'fixed', isActive: true }],
   })
   return { db, repository, draft, unit }
@@ -112,7 +113,7 @@ test('konversi baku gram, kemasan 1,5 L, dan penolakan lintas dimensi/nol', asyn
   await assert.rejects(repository.saveProduct(zero), /Konversi wajib positif/)
   const wrong = draft(); wrong.variants[0] = { ...wrong.variants[0], sellingUnitId: unit('g'), quantityInBaseUnit: 1000 }
   await assert.rejects(repository.saveProduct(wrong), /faktor baku/)
-  const fuel = draft(); fuel.baseUnitId = unit('l'); fuel.variants[0] = { ...fuel.variants[0], sellingUnitId: unit('botol'), quantityInBaseUnit: 1500, sellingPrice: null }
+  const fuel = draft(); fuel.baseUnitId = unit('l'); fuel.unitPolicy = { kind: 'fuel', allowedPackagingUnitIds: [unit('botol')] }; fuel.variants[0] = { ...fuel.variants[0], sellingUnitId: unit('botol'), quantityInBaseUnit: 1500, sellingPrice: null }
   const product = await repository.saveProduct(fuel)
   assert.equal((await repository.getSnapshot()).variants.find((item) => item.productId === product.id)?.quantityInBaseUnit, 1500)
 })

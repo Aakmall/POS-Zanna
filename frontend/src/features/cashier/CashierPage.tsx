@@ -52,6 +52,7 @@ export function CashierPage() {
   }
 
   function addProduct(product: CatalogItem) {
+    if (!cart.canAdd(product)) { setFeedback('Stok belum diatur, tidak cukup, atau varian belum dapat dibeli. Periksa halaman Stok dan keranjang.'); return }
     cart.add(product)
     setRecentlyAdded(product.id)
     setFeedback(`${product.name} ditambahkan ke keranjang DEMO.${!wide ? ' Ketuk Keranjang & Bayar untuk melihat belanja dan melakukan pembayaran simulasi.' : ''}`)
@@ -60,7 +61,7 @@ export function CashierPage() {
   }
 
   const panel = (
-    <CartPanel quote={quote} method={selectedMethod} onMethodChange={setSelectedMethod}
+    <CartPanel quote={quote} method={selectedMethod} onMethodChange={setSelectedMethod} canIncrease={cart.canAdd}
       onChange={(product, quantity) => { cart.change(product, quantity); setFeedback(quantity === 0 ? `${product.name} dihapus dari keranjang.` : `Jumlah ${product.name} diperbarui.`) }}
       onRemove={(id) => { cart.remove(id); setFeedback('Produk dihapus dari keranjang DEMO.') }}
       onClear={() => { cart.clear(); setRecentlyAdded(null); setFeedback('Keranjang DEMO telah dikosongkan.') }}
@@ -88,11 +89,11 @@ export function CashierPage() {
           <div className="my-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-muted"><span>{status === 'ready' ? `${filtered.length} varian` : 'Katalog'} · Master lokal / Kasir DEMO</span><span>Ilustrasi kategori</span></div>
           {status !== 'ready' ? <CatalogState /> : !filtered.length ? <EmptyState title="Belum ada varian aktif yang cocok" description="Tambahkan produk lokal, aktifkan varian, atau ubah pencarian dan kategori." action={<div className="flex flex-wrap justify-center gap-2"><Link className="btn btn-primary" to="/produk">Kelola produk</Link><Button variant="secondary" onClick={() => { updateQuery(''); setCategory('Semua') }}>Reset pencarian</Button></div>} /> : (
             <div className="product-grid">
-              {filtered.map((product) => <ProductCard key={product.id} product={product} quantity={cart.cart.find((line) => line.variantId === product.id)?.quantity ?? 0} justAdded={recentlyAdded === product.id} onAdd={() => addProduct(product)} />)}
+              {filtered.map((product) => <ProductCard key={product.id} product={product} quantity={cart.cart.find((line) => line.variantId === product.id)?.quantity ?? 0} canAdd={cart.canAdd(product)} justAdded={recentlyAdded === product.id} onAdd={() => addProduct(product)} />)}
             </div>
           )}
           <p role="status" aria-live="polite" aria-atomic="true" className="mt-4 rounded-lg bg-brand-soft px-3 py-2.5 text-xs leading-5 text-brand">{feedback}</p>
-          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Master dibaca dari IndexedDB. Kasir tetap DEMO, tanpa transaksi tersimpan atau perubahan stok. Varian tanpa harga/jumlah aktual belum dapat dibeli pada simulasi ini.</p>
+          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Master dan stok dibaca dari IndexedDB. Kasir tetap DEMO, tanpa transaksi tersimpan atau perubahan stok. <Link to="/stok" className="font-semibold text-brand underline">Atur stok awal di halaman Stok</Link> sebelum menambah produk. Varian tanpa harga/jumlah aktual belum dapat dibeli.</p>
           <details className="mt-4 border-t border-line pt-3 text-xs text-ink-muted"><summary className="min-h-11 cursor-pointer py-3 font-medium">Skenario simulasi</summary><p className="mb-3 leading-5">Coba tampilan gagal dimuat. Baca ulang tidak mengubah atau menghapus master lokal.</p><Button variant="secondary" className="text-xs" onClick={simulateError} disabled={status !== 'ready'}>Coba state error</Button></details>
         </section>
       </div>
@@ -104,5 +105,3 @@ export function CashierPage() {
     </>
   )
 }
-
-

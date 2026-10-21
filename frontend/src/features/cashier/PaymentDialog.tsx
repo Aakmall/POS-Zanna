@@ -31,10 +31,10 @@ export function PaymentDialog({ method, quote, onClose, onComplete }: { method: 
     if (method === 'Tunai' && (received === null || received < quote.total)) { setError('Masukkan uang tunai dalam rupiah bulat, minimal sebesar total.'); return }
     if (method === 'Bon' && !customer) { setError('Pilih pelanggan contoh untuk simulasi bon.'); return }
     setError(''); setStatus('processing')
-    const signature = JSON.stringify(quote.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive]))
+    const signature = JSON.stringify(quote.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive, line.product.quantityInBaseUnit, line.product.stockBase]))
     timer.current = window.setTimeout(() => {
       const latest = currentQuote.current
-      const latestSignature = JSON.stringify(latest.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive]))
+      const latestSignature = JSON.stringify(latest.lines.map((line) => [line.variantId, line.quantity, line.product.price, line.product.isActive, line.product.quantityInBaseUnit, line.product.stockBase]))
       if (!latest.valid || signature !== latestSignature) { setError('Master atau keranjang berubah. Periksa kembali total dan konfirmasi ulang.'); setStatus('idle'); return }
       setResultTotal(quote.total); setStatus('success')
     }, 700)
@@ -60,5 +60,3 @@ export function PaymentDialog({ method, quote, onClose, onComplete }: { method: 
     </form>}
   </Dialog>
 }
-
-

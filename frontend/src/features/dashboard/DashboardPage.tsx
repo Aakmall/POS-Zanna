@@ -7,23 +7,26 @@ import { demoCustomers, demoSales } from '../../mocks/business'
 import { displayDate, money } from '../../lib/format'
 import { summarizeSales } from '../../lib/sales'
 import { useDemoStore } from '../../hooks/useDemoStore'
+import { useInventory } from '../../hooks/useInventory'
+import { quantityText } from '../../domain/quantity'
 
 export function DashboardPage() {
   const { products, status } = useDemoStore()
+  const { rows } = useInventory()
   const sampleDate = '2026-10-19'
   const sales = demoSales.filter((sale) => sale.date === sampleDate)
   const summary = summarizeSales(sales)
-  const lowStock = products.filter((product) => product.stock !== null && product.stock <= product.minimumStock).sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0))
+  const lowStock = products.filter((product) => product.stockStatus === 'LOW_STOCK' || product.stockStatus === 'OUT_OF_STOCK').filter((product, index, items) => items.findIndex((item) => item.productId === product.productId) === index).sort((a, b) => (a.stockBase ?? 0) - (b.stockBase ?? 0))
 
   return (
     <>
-      <PageHeader title="Ringkasan warung" description="Gambaran penjualan dan persediaan untuk membantu langkah berikutnya. Semua data adalah DEMO."
+      <PageHeader title="Ringkasan warung" description="Penjualan sampel DEMO dan persediaan lokal yang Anda catat. Checkout belum menjadi transaksi nyata."
         action={<span className="inline-flex min-h-11 items-center rounded-control border border-line bg-surface px-4 text-xs text-ink-muted">19 Oktober 2026 · Sampel tetap</span>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Penjualan" value={money(summary.revenue)} note="Sampel 19 Okt 2026 · DEMO" icon={Banknote} />
         <StatCard label="Total Transaksi" value={String(summary.count)} note="Transaksi contoh, bukan hasil checkout" icon={ReceiptText} />
         <StatCard label="Jumlah Pelanggan" value={String(demoCustomers.length)} note="Pelanggan fiktif dalam data contoh" icon={Users} />
-        <StatCard label="Produk Stok Rendah" value="—" note="Belum dihitung · saldo stok belum dibuat" icon={AlertTriangle} />
+        <StatCard label="Produk Stok Rendah" value={status === 'ready' ? String(rows.filter((row) => row.status === 'LOW_STOCK').length) : '—'} note="Saldo positif ≤ minimum · master lokal" icon={AlertTriangle} />
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -46,14 +49,14 @@ export function DashboardPage() {
 
         <section className="panel overflow-hidden" aria-labelledby="stock-title">
           <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4"><div><h2 id="stock-title" className="text-sm font-semibold">Persediaan perlu perhatian</h2><p className="mt-1 text-[11px] text-ink-muted">Jaga kebutuhan warung tetap tersedia.</p></div><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning"><PackageCheck size={18} aria-hidden="true" /></span></div>
-          {status !== 'ready' ? <p role="status" className="p-6 text-sm leading-6 text-ink-muted">{status === 'loading' ? 'Membaca katalog lokal…' : 'Katalog lokal gagal dimuat. Buka halaman Stok untuk mencoba lagi.'}</p> : lowStock.length === 0 ? <div className="p-6 text-sm leading-6 text-ink-muted">Saldo stok belum dicatat. Siapkan batas minimum pada master produk; inventory ledger tersedia pada fase berikutnya.</div> : (
+          {status !== 'ready' ? <p role="status" className="p-6 text-sm leading-6 text-ink-muted">{status === 'loading' ? 'Membaca katalog lokal…' : 'Katalog lokal gagal dimuat. Buka halaman Stok untuk mencoba lagi.'}</p> : lowStock.length === 0 ? <div className="p-6 text-sm leading-6 text-ink-muted">Tidak ada stok menipis/habis yang tercatat. Periksa produk yang belum diatur pada halaman Stok.</div> : (
             <ul className="divide-y divide-line px-5">{lowStock.slice(0, 5).map((product) => <li key={product.id} className="flex items-center gap-3 py-4">
               <ProductMark product={product} small />
-              <div className="min-w-0 flex-1"><h3 className="text-xs font-semibold">{product.name}</h3><p className="mt-1.5 text-[11px] text-ink-muted">Minimum {product.minimumStock} {product.unit}</p></div>
-              <span className={`pill shrink-0 ${product.stock === 0 ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'}`}>{product.stock === 0 ? 'Habis' : `${product.stock} ${product.unit}`}</span>
+              <div className="min-w-0 flex-1"><h3 className="text-xs font-semibold">{product.name}</h3><p className="mt-1.5 text-[11px] text-ink-muted">Minimum {product.minimumStock ?? '—'} {product.baseUnitName}</p></div>
+              <span className={`pill shrink-0 ${product.stockStatus === 'OUT_OF_STOCK' ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'}`}>{product.stockStatus === 'OUT_OF_STOCK' ? 'Habis' : `${quantityText(product.stockBase ?? 0)} ${product.baseUnitName}`}</span>
             </li>)}</ul>
           )}
-          <Link to="/stok" className="flex min-h-14 items-center justify-center gap-2 border-t border-line text-xs font-semibold text-brand hover:bg-brand-soft">Kelola stok contoh <ArrowRight size={15} aria-hidden="true" /></Link>
+          <Link to="/stok" className="flex min-h-14 items-center justify-center gap-2 border-t border-line text-xs font-semibold text-brand hover:bg-brand-soft">Kelola persediaan lokal <ArrowRight size={15} aria-hidden="true" /></Link>
         </section>
       </div>
 

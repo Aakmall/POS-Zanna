@@ -14,9 +14,10 @@ interface Props {
   onRemove: (id: string) => void
   onClear: () => void
   onPay: () => void
+  canIncrease: (product: CatalogItem) => boolean
 }
 
-export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, onClear, onPay }: Props) {
+export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, onClear, onPay, canIncrease }: Props) {
   const titleId = useId()
   return (
     <section aria-labelledby={titleId} className="panel cart-panel">
@@ -42,7 +43,7 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
               <div className="quantity-control">
                 <button type="button" aria-label={`Kurangi ${product.name}`} onClick={() => onChange(product, quantity - 1)}><Minus size={14} aria-hidden="true" /></button>
                 <span key={quantity} className="quantity-value">{quantity}</span>
-                <button type="button" aria-label={`Tambah ${product.name}`} onClick={() => onChange(product, quantity + 1)} disabled={(product.stock !== null && quantity >= product.stock) || quantity >= 1_000_000 || product.price === null || product.isActive === false}><Plus size={14} aria-hidden="true" /></button>
+                <button type="button" aria-label={`Tambah ${product.name}`} onClick={() => onChange(product, quantity + 1)} disabled={!canIncrease(product)}><Plus size={14} aria-hidden="true" /></button>
               </div>
               <p className="text-[13px] font-semibold tabular-nums">{money(amount)}</p>
             </div>
@@ -54,7 +55,7 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
       <div className="mt-auto border-t border-line p-5">
         <div className="flex justify-between text-xs text-ink-muted"><span>Subtotal</span><span className="tabular-nums">{money(quote.total)}</span></div>
         <p className="mt-2 text-[10px] text-ink-muted">Tanpa pajak atau diskon pada simulasi ini.</p>
-        <p className="mt-2 text-[10px] leading-5 text-ink-muted">Nama dan harga mengikuti master lokal terbaru. Periksa kembali total sebelum Bayar. Keranjang hanya di memori; stok tidak diubah.</p>
+        <p className="mt-2 text-[10px] leading-5 text-ink-muted">Nama/harga mengikuti master terbaru. Batas jumlah menghitung saldo bersama semua varian; saldo fisik tidak direservasi atau dikurangi oleh DEMO.</p>
         <div className="my-4 flex flex-wrap justify-between gap-2 border-t border-dashed border-line pt-4"><span className="text-sm font-semibold">Total belanja</span><span className="text-xl font-bold tracking-tight tabular-nums">{money(quote.total)}</span></div>
         {quote.itemCount > 0 && !quote.valid && <p className="mb-4 rounded-lg bg-danger-soft p-3 text-xs leading-5 text-danger" role="alert">Harga, stok, atau katalog tidak valid. Sesuaikan atau kosongkan keranjang.</p>}
         <div className="mb-4 grid grid-cols-3 gap-2" role="group" aria-label="Metode pembayaran DEMO">
@@ -71,4 +72,3 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
     </section>
   )
 }
-

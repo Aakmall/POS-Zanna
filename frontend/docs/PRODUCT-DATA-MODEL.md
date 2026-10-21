@@ -1,6 +1,8 @@
 ﻿# Product Data Model — POS-Zanna Fase 2
 
-Status: master produk lokal sudah berfungsi. Kasir/pembayaran masih DEMO. Backend, PostgreSQL, ledger, PWA, dan sinkronisasi belum dibuat.
+Dokumen ini merekam keputusan master pada **Fase 2**. Pembaruan inventory dan skema v2 ada di [Inventory Data Model Fase 3](INVENTORY-DATA-MODEL.md). Pernyataan ledger belum tersedia di bawah berlaku untuk Fase 2.
+
+Status Fase 2: master produk lokal sudah berfungsi. Kasir/pembayaran masih DEMO. Backend, PostgreSQL, ledger, PWA, dan sinkronisasi belum dibuat.
 
 ## Entitas dan relasi
 

@@ -1,5 +1,6 @@
 ﻿export const categories = ['Sembako', 'Makanan', 'Minuman', 'Bensin', 'Solar', 'Eceran'] as const
 export type Category = typeof categories[number]
+import type { StockStatus } from '../domain/inventory'
 export type ProductIllustration = 'rice' | 'oil' | 'sugar' | 'noodles' | 'biscuit' | 'water' | 'tea' | 'soap' | 'tissue' | 'fuel' | 'diesel' | 'sachet'
 
 export interface CatalogItem {
@@ -11,7 +12,7 @@ export interface CatalogItem {
   cost: number | null
   unit: string
   stock: number | null
-  minimumStock: number
+  minimumStock: number | null
   symbol: string
   illustration?: ProductIllustration
   productId?: string
@@ -19,6 +20,10 @@ export interface CatalogItem {
   isActive?: boolean
   isDemo?: boolean
   saleMode?: 'fixed' | 'variable'
+  stockBase?: number | null
+  stockStatus?: StockStatus
+  quantityInBaseUnit?: number
+  baseUnitName?: string
 }
 
 export interface CartLine { variantId: string; quantity: number }
@@ -38,4 +43,3 @@ export interface DemoSale {
   total: number
   cost: number
 }
-
