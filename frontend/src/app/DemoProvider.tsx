@@ -13,7 +13,7 @@ import { CheckoutController, type CheckoutClient } from '../features/cashier/che
 import { browserCheckoutSession, type CheckoutSessionStore } from '../features/cashier/checkoutSession'
 
 const empty: CatalogSnapshot = { products: [], categories: [], units: [], variants: [] }
-export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService, checkout = defaultCheckoutService, checkoutSession = browserCheckoutSession }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService; checkout?: CheckoutClient; checkoutSession?: CheckoutSessionStore }>) {
+export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService, checkout = defaultCheckoutService, checkoutSession = browserCheckoutSession, catalogEnabled = true }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService; checkout?: CheckoutClient; checkoutSession?: CheckoutSessionStore; catalogEnabled?: boolean }>) {
   const [snapshot, setSnapshot] = useState<CatalogSnapshot>(empty)
   const [cart, setCart] = useState<CartLine[]>([])
   const [status, setStatus] = useState<DemoStore['status']>('loading')
@@ -24,6 +24,8 @@ export function DemoProvider({ children, repository = productRepository, invento
   const [attempt, setAttempt] = useState(0)
   const [checkoutController] = useState(() => new CheckoutController(checkout, checkoutSession))
   useEffect(() => {
+    // History reads its own snapshots; keep cart/controller alive without initializing master data.
+    if (!catalogEnabled) return
     let active = true
     let unsubscribe: (() => void) | undefined
     let unsubscribeBalances: (() => void) | undefined
@@ -38,7 +40,7 @@ export function DemoProvider({ children, repository = productRepository, invento
       }, (cause) => { if (active) { setBalanceStatus('error'); setBalanceError(cause instanceof Error ? cause.message : 'Saldo persediaan gagal dibaca.') } })
     }).catch(fail)
     return () => { active = false; unsubscribe?.(); unsubscribeBalances?.() }
-  }, [repository, inventory, attempt])
+  }, [repository, inventory, attempt, catalogEnabled])
   const combinedStatus = status === 'error' || balanceStatus === 'error' ? 'error' : status === 'ready' && balanceStatus === 'ready' ? 'ready' : 'loading'
   const products = useMemo(() => projectCatalog(snapshot, balances), [snapshot, balances])
   const store: DemoStore = {

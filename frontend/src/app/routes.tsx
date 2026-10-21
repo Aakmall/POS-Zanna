@@ -10,8 +10,11 @@ import { StockPage } from '../features/stock/StockPage'
 import { CreditPage } from '../features/credit/CreditPage'
 import { ReportsPage } from '../features/reports/ReportsPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
+import { SalesHistoryPage } from '../features/sales-history/SalesHistoryPage'
+import { SaleDetailsPage } from '../features/sales-history/SaleDetailsPage'
+import type { SalesHistoryReader } from '../domain/salesHistory'
 
-export function AppRoutes() {
+export function AppRoutes({ salesHistory }: { salesHistory?: SalesHistoryReader } = {}) {
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -22,6 +25,8 @@ export function AppRoutes() {
         <Route path="kasir" element={<CashierPage />} />
         <Route path="produk" element={<ProductsPage />} />
         <Route path="stok" element={<StockPage />} />
+        <Route path="penjualan" element={<SalesHistoryPage service={salesHistory} />} />
+        <Route path="penjualan/:saleId" element={<SaleDetailsPage service={salesHistory} />} />
         <Route path="bon" element={<CreditPage />} />
         <Route path="laporan" element={<ReportsPage />} />
         <Route path="pengaturan" element={<SettingsPage />} />

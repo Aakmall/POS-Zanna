@@ -2,6 +2,8 @@
 
 Implementasi: 21 Oktober 2026. POS-Zanna / Zanna-Cell. Baca bersama [desain 4.1](PHASE-4-1-CHECKOUT-DESIGN.md), [domain/database 4.2](PHASE-4-2-DOMAIN-DATABASE.md), [engine 4.3](PHASE-4-3-CHECKOUT-SERVICE.md), dan [backlog](PROJECT-BACKLOG.md).
 
+**Kelanjutan 4.5 (22 Oktober 2026):** [Riwayat Penjualan dan struk hanya-baca](PHASE-4-5-SALES-HISTORY.md) kini tersedia. Batas di bawah yang menyatakan belum ada pencarian seluruh Sale bersifat historis 4.4 dan sudah diselesaikan pada 4.5. Pengguna melaporkan checkout bensin/produk lain telah diuji manual; agen tidak mengklaim melakukan pengujian manual itu. Validasi browser/tablet untuk riwayat 4.5 masih pending.
+
 **Sudah berfungsi:** UI checkout CASH, preview otoritatif, input tunai/kembalian, fixed/variable quantity, commit atomik melalui service, struk snapshot, perlindungan klik ganda, pembatalan intent, recovery refresh dan jurnal setelah tab ditutup. QRIS dan Bon DEMO dinonaktifkan. Dashboard/laporan tetap sampel. Tidak ada implementasi Fase 4.5, backend, PostgreSQL, sync, PWA, printer, retur, HPP, commit atau push.
 
 ## 1. Audit aktual dan keputusan

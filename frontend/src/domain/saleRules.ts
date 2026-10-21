@@ -34,9 +34,8 @@ export function validateSaleItem(value: unknown): asserts value is SaleItem {
   if (value.lineTotal !== calculateLineTotal(value.unitPriceSnapshot, value.quantity)) throw new CheckoutError('INVALID_REQUEST', 'Nilai baris tidak sesuai HALF_UP_LINE_V1.')
 }
 
-// Historical validation uses snapshots, never current master names/prices/policy.
-// This does not prove persistence, foreign keys or inventory atomicity.
-export function validateSale(value: unknown, items: readonly unknown[]): asserts value is Sale {
+// Shared header checks allow bounded history queries without reading every SaleItem.
+export function validateSaleHeader(value: unknown): asserts value is Sale {
   assertRecord(value, 'Penjualan')
   assertUuid(value.id, 'ID penjualan'); assertUuid(value.checkoutOperationId, 'ID operasi checkout'); assertTimestamp(value.createdAt)
   if (value.status !== 'COMPLETED' || value.paymentMethod !== 'CASH' || value.pricingPolicy !== PRICING_POLICY) throw new CheckoutError('INVALID_REQUEST', 'Status, metode, atau pricing policy penjualan tidak didukung.')
@@ -44,6 +43,13 @@ export function validateSale(value: unknown, items: readonly unknown[]): asserts
   assertText(value.requestFingerprint, 'Fingerprint penjualan', 100000)
   if (value.operatorId !== null) assertUuid(value.operatorId, 'ID operator')
   assertMoney(value.subtotal, 'Subtotal'); assertMoney(value.total, 'Total'); assertMoney(value.cashReceived, 'Uang diterima'); assertMoney(value.changeAmount, 'Kembalian')
+  if (value.subtotal !== value.total || value.changeAmount !== calculateChange(value.cashReceived, value.total)) throw new CheckoutError('INVALID_REQUEST', 'Total atau kembalian penjualan tidak sesuai.')
+}
+
+// Historical validation uses snapshots, never current master names/prices/policy.
+// This does not prove persistence, foreign keys or inventory atomicity.
+export function validateSale(value: unknown, items: readonly unknown[]): asserts value is Sale {
+  validateSaleHeader(value)
   if (!Array.isArray(items) || !items.length || items.length > MAX_CHECKOUT_LINES) throw new CheckoutError('INVALID_REQUEST', 'Penjualan harus memiliki 1–100 item.')
   const ids = new Set<string>(), variants = new Set<string>(), amounts: number[] = []
   for (const [index, item] of items.entries()) {
@@ -53,5 +59,4 @@ export function validateSale(value: unknown, items: readonly unknown[]): asserts
   }
   const total = sumLineTotals(amounts)
   if (value.subtotal !== total || value.total !== total) throw new CheckoutError('INVALID_REQUEST', 'Subtotal/total harus sama dengan jumlah nilai baris.')
-  if (value.changeAmount !== calculateChange(value.cashReceived, value.total)) throw new CheckoutError('INVALID_REQUEST', 'Kembalian penjualan tidak sesuai.')
 }

@@ -11,6 +11,7 @@ const pageDescriptions: Record<string, string> = {
   '/kasir': 'Pilih produk dan layani belanja dengan lebih mudah.',
   '/produk': 'Semua kebutuhan warung, dalam satu katalog.',
   '/stok': 'Persediaan yang tertata untuk usaha sehari-hari.',
+  '/penjualan': 'Riwayat transaksi tunai dan struk tersimpan di perangkat ini.',
   '/bon': 'Rincian pelanggan dan bon dalam satu tempat.',
   '/laporan': 'Kenali irama penjualan dari data contoh.',
   '/pengaturan': 'Sesuaikan ruang kerja warung Anda.',
@@ -38,7 +39,7 @@ export function OperationalLayout() {
   const navigate = useNavigate()
   const main = useRef<HTMLElement>(null)
   const previousPath = useRef(location.pathname)
-  const current = navigation.find((item) => item.to === location.pathname)
+  const current = navigation.find((item) => item.to === location.pathname || (item.to === '/penjualan' && location.pathname.startsWith('/penjualan/')))
 
   useEffect(() => {
     document.title = `${current?.label ?? 'Halaman tidak ditemukan'} | Zanna-Cell`
@@ -55,7 +56,7 @@ export function OperationalLayout() {
   }
 
   return (
-    <DemoProvider>
+    <DemoProvider catalogEnabled={!(location.pathname === '/penjualan' || location.pathname.startsWith('/penjualan/'))}>
       <div className={`operational-shell ${collapsed ? 'is-collapsed' : ''}`}>
         <a href="#operasional" className="skip-link">Lewati ke konten utama</a>
         <aside className="operational-sidebar">
@@ -101,7 +102,7 @@ export function OperationalLayout() {
           <main ref={main} id="operasional" tabIndex={-1} className="operational-main">
             <Outlet />
           </main>
-          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 4.4</span><span>Inventory &amp; Tunai IndexedDB · Laporan DEMO</span></footer>
+          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 4.5</span><span>Inventory &amp; Tunai IndexedDB · Laporan DEMO</span></footer>
         </div>
 
         <nav aria-label="Navigasi cepat" className="mobile-nav fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-surface px-2 pt-2 lg:hidden">
