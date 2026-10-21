@@ -21,6 +21,7 @@ export interface StockMovement {
   id: UUID; operationId: UUID; productId: UUID; productName: string; movementType: MovementType
   quantityDeltaBase: number; quantityBeforeBase: number; quantityAfterBase: number; inputQuantity: number
   conversionSnapshot: ConversionSnapshot; reason: string; createdBy: null; createdAt: string; requestFingerprint: string
+  saleId?: UUID; saleItemId?: UUID // Sparse relations reserved for future atomic checkout. Manual types stay unchanged.
 }
 export interface MovementResult { movement: StockMovement; duplicate: boolean }
 export interface InventoryRepository {

@@ -4,6 +4,8 @@ Status: operasi persediaan lokal sudah diimplementasikan. Kasir/pembayaran tetap
 
 ## Keputusan kompatibilitas
 
+**Kelanjutan Fase 4 Langkah 4.2:** skema sekarang v3 dengan store sales/saleItems/checkoutIntents serta indeks saleId/saleItemId di ledger. Deklarasi v1/v2 dan seluruh record inventory lama dipertahankan. Tidak ada checkout nyata atau movement SALE yang diaktifkan. [Panduan domain dan migrasi v3](PHASE-4-2-DOMAIN-DATABASE.md) menjelaskan perubahan; uraian v1→v2 di bawah adalah fondasi inventory Fase 3.
+
 **Pembaruan 21 Oktober 2026:** [Business Logic Hardening](PHASE-3-BUSINESS-HARDENING.md) menambahkan Product.unitPolicy dan izin kemasan per produk. Base/metrik kompatibel tetap tersedia pada legacy; kemasan tambahan membutuhkan review eksplisit. Profile fuel wajib volume dan hanya Botol/Jeriken yang diizinkan. Skema tetap v2; tidak ada backfill atau perubahan ledger/saldo. Bagian sumber konversi di bawah selalu tunduk pada policy tersebut.
 
 Database tetap `zanna-cell-db`. Skema Fase 2 versi 1 menyimpan products/categories/units/variants. Versi 2 menambahkan inventoryBalances dan stockMovements tanpa menghapus atau menulis ulang master. Tidak ada perubahan UUID, barcode, harga, satuan dasar, quantityInBaseUnit, atau minimumStock lama. Tidak ada seed saldo nol.

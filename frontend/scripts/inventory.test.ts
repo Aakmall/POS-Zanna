@@ -208,7 +208,7 @@ test('saldo/ledger tetap ada setelah reopen dan katalog membatasi stok bersama v
     assert.equal((await repo.getBalances())[0].quantityBase, 3000)
   } finally { reopened.close() }
 })
-test('migrasi v1 → v2 mempertahankan seluruh master/barcode/skala dan tidak seed stok nol', async () => {
+test('migrasi v1 → v3 mempertahankan seluruh master/barcode/skala dan tidak seed stok nol', async () => {
   const name = `migration-test-${crypto.randomUUID()}`
   const old = new Dexie(name)
   old.version(1).stores(PRODUCT_SCHEMA_V1)
@@ -221,13 +221,16 @@ test('migrasi v1 → v2 mempertahankan seluruh master/barcode/skala dan tidak se
   old.close()
   const upgraded = new ZannaDatabase(name); databases.push(upgraded)
   await upgraded.open()
-  assert.equal(upgraded.verno, 2)
+  assert.equal(upgraded.verno, 3)
   assert.deepEqual(await upgraded.products.toArray(), [product])
   assert.deepEqual(await upgraded.variants.toArray(), [variant])
   assert.deepEqual(await upgraded.categories.toArray(), [category])
   assert.deepEqual(await upgraded.units.toArray(), builtinUnits)
   assert.equal(await upgraded.inventoryBalances.count(), 0)
   assert.equal(await upgraded.stockMovements.count(), 0)
+  assert.equal(await upgraded.sales.count(), 0)
+  assert.equal(await upgraded.saleItems.count(), 0)
+  assert.equal(await upgraded.checkoutIntents.count(), 0)
 })
 
 test('hardening Solar: service, preview dan repository menolak 10 Sachet / Bungkus untuk semua mutasi', async () => {
