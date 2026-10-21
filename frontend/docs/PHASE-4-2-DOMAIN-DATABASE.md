@@ -2,6 +2,8 @@
 
 Implementasi: 21 Oktober 2026. POS-Zanna / Zanna-Cell. Baca bersama [desain 4.1](PHASE-4-1-CHECKOUT-DESIGN.md).
 
+**Catatan kelanjutan:** status/hasil di bawah merekam Langkah 4.2. Pada [Langkah 4.3](PHASE-4-3-CHECKOUT-SERVICE.md), service/repository atomik, ledger SALE dan recovery engine sudah dibuat; UI Kasir masih DEMO. Skema tetap v3. Optimisasi dicatat di [Project Backlog](PROJECT-BACKLOG.md).
+
 **Yang sudah berfungsi:** model TypeScript, validator runtime, kalkulasi murni, fingerprint dan salinan command, serta schema v3 dengan tes migrasi. **Yang belum dibuat:** CheckoutService operasional, prepare/execute persisten, write Sale dari Kasir, pengurangan stok penjualan, movement SALE nyata, receipt UI, dan recovery checkout. Kasir/keranjang/pembayaran tetap DEMO tanpa perubahan.
 
 ## 1. Audit dan penyesuaian desain 4.1

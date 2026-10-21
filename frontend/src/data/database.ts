@@ -28,7 +28,7 @@ export class ZannaDatabase extends Dexie {
       inventoryBalances: 'productId, updatedAt',
       stockMovements: 'id, productId, &operationId, [productId+createdAt], createdAt',
     })
-    // No backfill: v2 data/quantities/ledger are untouched. No checkout writer in step 4.2.
+    // No backfill: v2 data/quantities/ledger are untouched.
     this.version(3).stores({
       sales: 'id, &receiptNumber, &checkoutOperationId, createdAt, status',
       saleItems: 'id, saleId, productId, variantId, &[saleId+position]',

@@ -6,7 +6,7 @@ import { validateVariantUnit, ValidationError } from './validation'
 import { assertUnitAllowed } from './unitPolicy'
 
 export const MAX_STOCK_BASE = 1_000_000_000_000
-export const movementLabels = { OPENING_BALANCE: 'Stok awal', STOCK_IN: 'Stok masuk', ADJUSTMENT_IN: 'Koreksi masuk', ADJUSTMENT_OUT: 'Koreksi keluar' }
+export const movementLabels = { OPENING_BALANCE: 'Stok awal', STOCK_IN: 'Stok masuk', ADJUSTMENT_IN: 'Koreksi masuk', ADJUSTMENT_OUT: 'Koreksi keluar', SALE: 'Penjualan tunai' }
 export const stockStatusLabels: Record<StockStatus, string> = {
   NOT_INITIALIZED: 'Belum diatur', OUT_OF_STOCK: 'Stok habis', LOW_STOCK: 'Stok menipis', IN_STOCK: 'Tersedia',
 }

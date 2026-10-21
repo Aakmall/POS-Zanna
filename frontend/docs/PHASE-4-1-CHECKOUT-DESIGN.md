@@ -6,6 +6,8 @@ Tanggal audit: **21 Oktober 2026**. Repository POS-Zanna, aplikasi Zanna-Cell.
 
 **Kelanjutan 4.2:** model transaksi, kalkulator/validator murni dan schema v3 kini diimplementasikan sesuai cakupan terbatas. Service checkout atomik, writer penjualan, recovery dan UI nyata masih rencana. Lihat [hasil dan panduan Langkah 4.2](PHASE-4-2-DOMAIN-DATABASE.md); nama file final berbeda sebagian dari proposal ini.
 
+**Kelanjutan 4.3:** [engine checkout atomik dan recovery](PHASE-4-3-CHECKOUT-SERVICE.md) sudah diimplementasikan pada lapisan service/repository; nama/signature aktual tercantum di dokumentasi tersebut. Integrasi UI tetap menunggu Langkah 4.4. Uraian usulan di bawah dipertahankan sebagai dasar desain historis.
+
 ## 1. Ringkasan audit kode aktual
 
 Git awal bersih pada branch `master`, HEAD `9ec7d2c` (`feat(inventory): complete phase 3`). Kode sudah mencakup hardening satuan, sehingga angka 36/36 dan 16/16 pada prompt merupakan baseline lama. **`npm test` dijalankan ulang untuk audit ini: 44 berhasil, 0 gagal, 0 skipped**, termasuk **24 tes inventory**. Tes tersebut menguji implementasi Fase 3/DEMO, bukan checkout nyata yang baru dirancang.

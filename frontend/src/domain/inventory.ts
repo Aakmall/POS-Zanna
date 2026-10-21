@@ -17,12 +17,19 @@ export interface InventoryCommand {
   customQuantityInBaseUnit?: number; reason: string
   expectedBeforeBase?: number; expectedFactorBase?: number
 }
-export interface StockMovement {
-  id: UUID; operationId: UUID; productId: UUID; productName: string; movementType: MovementType
+interface MovementData {
+  id: UUID; operationId: UUID; productId: UUID; productName: string
   quantityDeltaBase: number; quantityBeforeBase: number; quantityAfterBase: number; inputQuantity: number
   conversionSnapshot: ConversionSnapshot; reason: string; createdBy: null; createdAt: string; requestFingerprint: string
-  saleId?: UUID; saleItemId?: UUID // Sparse relations reserved for future atomic checkout. Manual types stay unchanged.
 }
+export interface ManualStockMovement extends MovementData {
+  movementType: MovementType
+  saleId?: UUID; saleItemId?: UUID // Legacy optional fields preserved without rewriting records.
+}
+export interface SaleStockMovement extends MovementData {
+  movementType: 'SALE'; saleId: UUID; saleItemId: UUID
+}
+export type StockMovement = ManualStockMovement | SaleStockMovement
 export interface MovementResult { movement: StockMovement; duplicate: boolean }
 export interface InventoryRepository {
   getBalances(): Promise<InventoryBalance[]>

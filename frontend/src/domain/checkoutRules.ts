@@ -1,4 +1,4 @@
-import type { CatalogSnapshot, ProductVariant, Unit } from './product'
+import type { CatalogSnapshot, Product, ProductVariant, Unit } from './product'
 import type { ConversionSnapshot, InventoryBalance, UnitSnapshot } from './inventory'
 import { CheckoutError, type CheckoutCommand, type CheckoutQuote, type CheckoutSelection } from './checkout'
 import { assertCheckoutQuantity, assertMoney, calculateChange, calculateLineTotal, MAX_CHECKOUT_LINES, sumLineTotals } from './checkoutMath'
@@ -12,6 +12,26 @@ function snapshotUnit(unit: Unit): UnitSnapshot {
   const snapshot = { id: unit.id, code: unit.code, name: unit.name, dimension: unit.dimension, factor: unit.factor, isPackaging: unit.isPackaging }
   assertUnitSnapshot(snapshot)
   return snapshot
+}
+function activeVariant(variantId: string, catalog: CatalogSnapshot) {
+  const variant = catalog.variants.find((entry) => entry.id === variantId)
+  const product = catalog.products.find((entry) => entry.id === variant?.productId)
+  const category = catalog.categories.find((entry) => entry.id === product?.categoryId)
+  if (!variant || !product || !category || !variant.isActive || !product.isActive || !category.isActive) throw new CheckoutError('PRODUCT_UNAVAILABLE', 'Produk, kategori, atau varian tidak ditemukan/aktif.')
+  return { variant, product }
+}
+function expectedVariant(product: Product, variant: ProductVariant): CheckoutCommand['lines'][number]['expected'] {
+  assertMoney(variant.sellingPrice, 'Harga jual')
+  return { productId: product.id, baseUnitId: product.baseUnitId, sellingUnitId: variant.sellingUnitId,
+    saleMode: variant.saleMode, quantityInBaseUnit: variant.quantityInBaseUnit, unitPrice: variant.sellingPrice,
+    productUpdatedAt: product.updatedAt, variantUpdatedAt: variant.updatedAt }
+}
+export function copyCheckoutSelections(value: unknown): readonly CheckoutSelection[] {
+  if (!Array.isArray(value) || !value.length || value.length > MAX_CHECKOUT_LINES) throw new CheckoutError('INVALID_REQUEST', 'Pilih 1–100 varian untuk preview.')
+  return Object.freeze(value.map((line: unknown) => {
+    assertRecord(line, 'Pilihan checkout'); assertUuid(line.variantId, 'ID varian'); assertCheckoutQuantity(line.quantity, 'variable')
+    return Object.freeze({ variantId: line.variantId, quantity: line.quantity })
+  }))
 }
 function variantConversion(variant: ProductVariant, catalog: CatalogSnapshot): ConversionSnapshot {
   const product = catalog.products.find((entry) => entry.id === variant.productId)!
@@ -35,10 +55,7 @@ export function calculateCheckoutQuote(selections: readonly CheckoutSelection[],
     assertRecord(selection, 'Pilihan checkout'); assertUuid(selection.variantId, 'ID varian')
     if (used.has(selection.variantId)) throw new CheckoutError('INVALID_REQUEST', 'Varian duplikat pada keranjang.')
     used.add(selection.variantId)
-    const variant = catalog.variants.find((entry) => entry.id === selection.variantId)
-    const product = catalog.products.find((entry) => entry.id === variant?.productId)
-    const category = catalog.categories.find((entry) => entry.id === product?.categoryId)
-    if (!variant || !product || !category || !variant.isActive || !product.isActive || !category.isActive) throw new CheckoutError('PRODUCT_UNAVAILABLE', 'Produk, kategori, atau varian tidak ditemukan/aktif.')
+    const { variant, product } = activeVariant(selection.variantId, catalog)
     if (variant.saleMode !== 'fixed' && variant.saleMode !== 'variable') throw new CheckoutError('INVALID_REQUEST', 'Mode varian tidak valid.')
     assertCheckoutQuantity(selection.quantity, variant.saleMode); assertMoney(variant.sellingPrice, 'Harga jual')
     assertTimestamp(product.updatedAt); assertTimestamp(variant.updatedAt)
@@ -48,11 +65,7 @@ export function calculateCheckoutQuote(selections: readonly CheckoutSelection[],
     catch (cause) { throw new CheckoutError('INVALID_REQUEST', cause instanceof Error ? cause.message : 'Hasil konversi tidak valid.') }
     const lineTotal = calculateLineTotal(variant.sellingPrice, selection.quantity)
     demand.set(product.id, (demand.get(product.id) ?? 0n) + BigInt(quantityBase))
-    lines.push({ variantId: variant.id, quantity: selection.quantity, expected: {
-      productId: product.id, baseUnitId: product.baseUnitId, sellingUnitId: variant.sellingUnitId, saleMode: variant.saleMode,
-      quantityInBaseUnit: variant.quantityInBaseUnit, unitPrice: variant.sellingPrice,
-      productUpdatedAt: product.updatedAt, variantUpdatedAt: variant.updatedAt,
-    } })
+    lines.push({ variantId: variant.id, quantity: selection.quantity, expected: expectedVariant(product, variant) })
     items.push({ position: index + 1, productId: product.id, variantId: variant.id,
       productNameSnapshot: product.name, variantNameSnapshot: variant.name, saleModeSnapshot: variant.saleMode,
       unitSnapshot: { ...conversion.inputUnit }, conversionSnapshot: conversion,
@@ -74,11 +87,12 @@ export function calculateCheckoutQuote(selections: readonly CheckoutSelection[],
 // Caller in step 4.3 must supply master/balances read INSIDE its atomic transaction.
 export function validateCheckoutAgainstSnapshot(command: CheckoutCommand, catalog: CatalogSnapshot, balances: readonly InventoryBalance[]): CheckoutQuote {
   validateCheckoutCommand(command)
-  const quote = calculateCheckoutQuote(command.lines, catalog, balances)
-  for (const [index, line] of command.lines.entries()) {
-    const latest = quote.lines[index].expected
+  for (const line of command.lines) {
+    const { product, variant } = activeVariant(line.variantId, catalog)
+    const latest = expectedVariant(product, variant)
     if ((Object.keys(latest) as (keyof typeof latest)[]).some((key) => line.expected[key] !== latest[key])) throw new CheckoutError('QUOTE_CHANGED', 'Master, harga, atau faktor berubah. Tinjau ulang konfirmasi checkout.')
   }
+  const quote = calculateCheckoutQuote(command.lines, catalog, balances)
   if (command.expectedTotal !== quote.total) throw new CheckoutError('QUOTE_CHANGED', 'Total konfirmasi tidak sesuai perhitungan master terbaru.')
   calculateChange(command.cashReceived, quote.total)
   return quote

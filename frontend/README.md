@@ -1,6 +1,6 @@
 # Zanna-Cell — POS-Zanna
 
-Sistem Kasir Warung Campuran. Inventory Fase 3 berfungsi; **Fase 4 Langkah 4.2 menambahkan domain transaksi, kalkulator murni, dan schema Dexie v3**. Master produk dan persediaan tersimpan di IndexedDB. Kasir, pembayaran, Bon, serta laporan penjualan tetap DEMO; belum ada checkout nyata.
+Sistem Kasir Warung Campuran. **Fase 4 Langkah 4.3 menyediakan engine checkout tunai atomik pada domain/service/repository Dexie v3**. Master produk dan persediaan tersimpan di IndexedDB. UI Kasir, pembayaran, Bon, serta laporan penjualan tetap DEMO; engine belum dihubungkan ke UI.
 
 ## Menjalankan proyek
 
@@ -71,6 +71,8 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 ```text
 frontend/
 ├── docs/
+│   ├── PHASE-4-3-CHECKOUT-SERVICE.md
+│   ├── PROJECT-BACKLOG.md
 │   ├── PHASE-4-2-DOMAIN-DATABASE.md
 │   ├── PHASE-4-1-CHECKOUT-DESIGN.md
 │   ├── PHASE-3-BUSINESS-HARDENING.md
@@ -90,7 +92,7 @@ frontend/
 │   ├── hooks/                    # Inventory, riwayat, breakpoint Kasir
 │   ├── lib/                      # Formatting dan agregasi demo
 │   ├── mocks/                    # Sampel eksplisit / laporan fiktif
-│   ├── services/                 # Inventory service, pilihan satuan, composition root
+│   ├── services/                 # Inventory/checkout service, pilihan satuan, composition root
 │   ├── styles/                   # Tokens, base, responsive retail
 │   ├── types/                    # Read model dan tipe UI
 │   └── main.tsx
@@ -101,7 +103,9 @@ frontend/
 
 Database tetap **`zanna-cell-db`**. Skema v1 (`products`, `categories`, `units`, `variants`) dipertahankan. Skema v2 menambahkan `inventoryBalances` dan `stockMovements` tanpa menghapus/mereset data lama, mengubah UUID/barcode, atau otomatis memberi stok nol.
 
-**Schema v3** menambahkan `sales`, `saleItems`, `checkoutIntents` dan indeks relasi `saleId`/`saleItemId` pada ledger. Deklarasi v1/v2 tetap. Ketiga tabel baru tidak diisi otomatis; Kasir belum memiliki writer checkout. Model dan indeks unik belum menjamin penjualan atomik atau foreign key. Validasi request, kuantitas, harga HALF_UP_LINE_V1 dan snapshot sudah tersedia sebagai fungsi domain murni untuk langkah berikutnya.
+**Schema v3** menambahkan `sales`, `saleItems`, `checkoutIntents` dan indeks relasi `saleId`/`saleItemId` pada ledger. Deklarasi v1/v2 tetap. Tabel tidak diisi otomatis. Model/indeks sendiri tidak menjamin foreign key; engine 4.3 menegakkan relasi dan menulis Sale, semua item, ledger SALE, saldo serta intent COMMITTED dalam satu transaksi. UI Kasir belum memanggil engine ini.
+
+`CheckoutService` menyediakan preview/prepare/execute/getResult/listUnresolved/cancel. prepare membekukan request; execute membaca ulang master/saldo dan commit atomik; replay sukses mengembalikan snapshot lama tanpa write kedua. Tidak ada auto-execute saat aplikasi dibuka. `npm run test:checkout` menguji domain/migration/service pada database terisolasi.
 
 Identitas memakai UUID; waktu ISO UTC; harga integer rupiah; kuantitas integer berskala **1000 per satuan dasar** sesuai Fase 2. `minimumStock` menggunakan skala yang sama; `null` berarti belum diatur. Satuan dasar tidak dapat diganti setelah produk dibuat. Stok diskret tidak menerima pecahan. Perhitungan konversi memakai BigInt sementara untuk validasi presisi; nilai tersimpan tetap number integer aman.
 
@@ -109,6 +113,8 @@ Setiap perubahan saldo dan penambahan ledger berada dalam satu transaksi Dexie. 
 
 ## Dokumentasi pembelajaran
 
+- [Fase 4 · Langkah 4.3: service atomik, ledger, idempotency, concurrency, rollback dan recovery](docs/PHASE-4-3-CHECKOUT-SERVICE.md)
+- [Project Backlog: optimisasi/nonkritis yang ditunda](docs/PROJECT-BACKLOG.md)
 - [Fase 4 · Langkah 4.2: domain, kalkulator, migrasi v3, hasil tes, lima latihan dan DevTools](docs/PHASE-4-2-DOMAIN-DATABASE.md)
 - [Fase 4 · Langkah 4.1: audit dan desain checkout tunai, belum diimplementasikan](docs/PHASE-4-1-CHECKOUT-DESIGN.md)
 - [Hardening satuan/kemasan: policy per produk, review legacy, dan koreksi saldo](docs/PHASE-3-BUSINESS-HARDENING.md)
@@ -126,6 +132,6 @@ Checklist lengkap yang belum ditandai lulus tersedia di panduan belajar. Periksa
 
 IndexedDB bukan backup permanen: penghapusan site data, eviction, mode privat, atau kerusakan perangkat dapat menghilangkan data. Backup/restore dan autentikasi tepercaya belum tersedia. Pembatasan UI bukan proteksi owner terhadap pengguna yang menguasai browser/DevTools. Ledger tidak memiliki audit server atau proteksi kriptografis.
 
-Belum ada checkout nyata, reservasi stok keranjang, pengurangan stok otomatis penjualan, SALE/RETURN, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Penjualan volume variabel di Kasir tetap di luar cakupan; inventory menerima volume presisi. Riwayat ditampilkan bertahap, tetapi subscription masih membaca seluruh riwayat satu produk.
+Belum ada integrasi checkout nyata pada UI Kasir, reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Engine tunai sudah mendukung volume presisi dan ledger SALE, tetapi UI volume/receipt/recovery aktif masih langkah berikutnya. Riwayat ditampilkan bertahap, tetapi subscription masih membaca seluruh riwayat satu produk.
 
-**Berhenti pada Langkah 4.2.** Domain transaksi dan schema v3 sudah tersedia; service checkout atomik, pengurangan stok penjualan dan UI nyata belum dibuat. Langkah 4.3 menunggu evaluasi pengguna. Tidak ada Git commit/push otomatis.
+**Berhenti pada Langkah 4.3.** Engine checkout atomik sudah tersedia dan diuji; UI Kasir tetap DEMO. Integrasi Langkah 4.4 menunggu evaluasi dan persetujuan pengguna. Tidak ada Git commit/push otomatis.

@@ -80,7 +80,7 @@ test('skema v3: saleItems unik pada saleId+position dan dapat dicari dari parent
   } finally { await db.delete() }
 })
 
-test('skema v3: intent key unik; field status/saleId terindeks; tidak ada prepare operasional', async () => {
+test('skema v3: intent key unik dan status/saleId terindeks pada fixture terisolasi', async () => {
   const db = new ZannaDatabase(`checkout-intent-test-${crypto.randomUUID()}`), { command } = commandFixture()
   const intent: CheckoutIntent = { checkoutOperationId: command.checkoutOperationId, command: copyCheckoutCommand(command), requestFingerprint: checkoutFingerprint(command), status: 'PREPARED', createdAt: testStamp }
   try {

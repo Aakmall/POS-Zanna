@@ -152,7 +152,7 @@ test('Sale invalid: status/metode/total/change/relasi/urutan dan duplicate item 
   for (const badItems of [[], [items[0], items[0]], [{ ...items[0], saleId: crypto.randomUUID() }], [{ ...items[0], position: 2 }]]) assert.throws(() => validateSale(sale, badItems), errorCode('INVALID_REQUEST'))
   assert.throws(() => formatReceiptNumber(sale.id, '2026-02-30T00:00:00.000Z'), errorCode('INVALID_REQUEST'))
 })
-test('langkah 4.2 tidak membuka tipe SALE pada validator inventory manual', () => {
+test('validator inventory manual tetap menolak SALE meskipun ledger mendukung penjualan', () => {
   const request = { operationId: crypto.randomUUID(), productId: crypto.randomUUID(), movementType: 'SALE', inputQuantity: 1000, inputUnitId: crypto.randomUUID(), reason: '' }
   assert.throws(() => validateInventoryCommand(request as Parameters<typeof validateInventoryCommand>[0]), /belum didukung/)
 })

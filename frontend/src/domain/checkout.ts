@@ -10,7 +10,7 @@ export const checkoutErrorCodes = [
 export type CheckoutErrorCode = typeof checkoutErrorCodes[number]
 export class CheckoutError extends ValidationError {
   readonly code: CheckoutErrorCode
-  constructor(code: CheckoutErrorCode, message: string) { super(message); this.name = 'CheckoutError'; this.code = code }
+  constructor(code: CheckoutErrorCode, message: string, options?: ErrorOptions) { super(message, options); this.name = 'CheckoutError'; this.code = code }
 }
 export interface CheckoutSelection { readonly variantId: UUID; readonly quantity: number }
 export interface CheckoutLineRequest extends CheckoutSelection {
@@ -51,8 +51,11 @@ export type CheckoutIntent = IntentData & (
   { readonly status: 'COMMITTED'; readonly saleId: UUID } |
   { readonly status: 'PREPARED' | 'CANCELLED'; readonly saleId?: never }
 )
-// Read-only persistence contract. No operational checkout writer exists in step 4.2.
+// Read-only part of the persistence contract; the atomic writer extends it separately.
 export interface CheckoutReadRepository {
   getResult(checkoutOperationId: UUID): Promise<CheckoutResult | null>
   getIntent(checkoutOperationId: UUID): Promise<CheckoutIntent | null>
 }
+export type CheckoutCancellation =
+  { readonly status: 'CANCELLED'; readonly intent: CheckoutIntent } |
+  { readonly status: 'COMMITTED'; readonly result: CheckoutResult }

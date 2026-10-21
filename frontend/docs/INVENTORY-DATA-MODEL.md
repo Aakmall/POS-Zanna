@@ -4,6 +4,8 @@ Status: operasi persediaan lokal sudah diimplementasikan. Kasir/pembayaran tetap
 
 ## Keputusan kompatibilitas
 
+**Kelanjutan Langkah 4.3:** [engine checkout tunai atomik](PHASE-4-3-CHECKOUT-SERVICE.md) kini membuat SaleStockMovement bertipe SALE dengan relasi saleId/saleItemId wajib. Command manual tetap empat jenis Fase 3; UI Kasir belum memakai engine. Schema tetap v3 tanpa reset/backfill. Penjelasan batas Fase 3/4.2 di bawah merekam keadaan sebelum engine ini dibuat.
+
 **Kelanjutan Fase 4 Langkah 4.2:** skema sekarang v3 dengan store sales/saleItems/checkoutIntents serta indeks saleId/saleItemId di ledger. Deklarasi v1/v2 dan seluruh record inventory lama dipertahankan. Tidak ada checkout nyata atau movement SALE yang diaktifkan. [Panduan domain dan migrasi v3](PHASE-4-2-DOMAIN-DATABASE.md) menjelaskan perubahan; uraian v1→v2 di bawah adalah fondasi inventory Fase 3.
 
 **Pembaruan 21 Oktober 2026:** [Business Logic Hardening](PHASE-3-BUSINESS-HARDENING.md) menambahkan Product.unitPolicy dan izin kemasan per produk. Base/metrik kompatibel tetap tersedia pada legacy; kemasan tambahan membutuhkan review eksplisit. Profile fuel wajib volume dan hanya Botol/Jeriken yang diizinkan. Skema tetap v2; tidak ada backfill atau perubahan ledger/saldo. Bagian sumber konversi di bawah selalu tunduk pada policy tersebut.
