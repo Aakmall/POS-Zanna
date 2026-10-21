@@ -20,7 +20,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Ringkasan warung" description="Penjualan sampel DEMO dan persediaan lokal yang Anda catat. Checkout belum menjadi transaksi nyata."
+      <PageHeader title="Ringkasan warung" description="Penjualan sampel DEMO dan persediaan lokal yang Anda catat. Angka penjualan di halaman ini belum membaca transaksi tunai Kasir."
         action={<span className="inline-flex min-h-11 items-center rounded-control border border-line bg-surface px-4 text-xs text-ink-muted">19 Oktober 2026 · Sampel tetap</span>} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Penjualan" value={money(summary.revenue)} note="Sampel 19 Okt 2026 · DEMO" icon={Banknote} />
@@ -44,7 +44,7 @@ export function DashboardPage() {
               </tr>)}</tbody>
             </table>
           </div>
-          <p className="border-t border-line px-5 py-4 text-[11px] leading-5 text-ink-muted">Transaksi ilustrasi ini tidak berubah ketika Anda menyelesaikan pembayaran DEMO di Kasir.</p>
+          <p className="border-t border-line px-5 py-4 text-[11px] leading-5 text-ink-muted">Transaksi ilustrasi ini tidak berubah ketika Anda menyelesaikan pembayaran tunai nyata di Kasir.</p>
         </section>
 
         <section className="panel overflow-hidden" aria-labelledby="stock-title">
@@ -62,7 +62,7 @@ export function DashboardPage() {
 
       <section className="mt-6 flex flex-wrap items-center justify-between gap-5 rounded-panel border border-brand/15 bg-brand-soft p-5 sm:p-6">
         <div className="flex items-center gap-4"><span className="hidden size-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand sm:flex"><ShoppingBasket size={25} strokeWidth={1.5} aria-hidden="true" /></span><div><h2 className="text-sm font-semibold">Siap mencoba alur belanja?</h2><p className="mt-1.5 text-xs leading-6 text-ink-muted">Pilih produk, susun keranjang, dan simulasikan pembayaran.</p></div></div>
-        <Link className="btn btn-primary text-xs" to="/kasir">Buka kasir DEMO <ArrowRight size={16} aria-hidden="true" /></Link>
+        <Link className="btn btn-primary text-xs" to="/kasir">Buka kasir <ArrowRight size={16} aria-hidden="true" /></Link>
       </section>
     </>
   )

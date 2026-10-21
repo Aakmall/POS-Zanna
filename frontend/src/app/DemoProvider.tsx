@@ -8,9 +8,12 @@ import { DemoContext, type DemoStore } from './demoContext'
 import { inventoryService as defaultInventoryService } from '../services/inventoryService'
 import type { InventoryService } from '../services/inventoryOperations'
 import type { InventoryBalance } from '../domain/inventory'
+import { checkoutService as defaultCheckoutService } from '../services/checkoutService'
+import { CheckoutController, type CheckoutClient } from '../features/cashier/checkoutController'
+import { browserCheckoutSession, type CheckoutSessionStore } from '../features/cashier/checkoutSession'
 
 const empty: CatalogSnapshot = { products: [], categories: [], units: [], variants: [] }
-export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService }>) {
+export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService, checkout = defaultCheckoutService, checkoutSession = browserCheckoutSession }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService; checkout?: CheckoutClient; checkoutSession?: CheckoutSessionStore }>) {
   const [snapshot, setSnapshot] = useState<CatalogSnapshot>(empty)
   const [cart, setCart] = useState<CartLine[]>([])
   const [status, setStatus] = useState<DemoStore['status']>('loading')
@@ -19,6 +22,7 @@ export function DemoProvider({ children, repository = productRepository, invento
   const [balanceStatus, setBalanceStatus] = useState<DemoStore['status']>('loading')
   const [balanceError, setBalanceError] = useState('')
   const [attempt, setAttempt] = useState(0)
+  const [checkoutController] = useState(() => new CheckoutController(checkout, checkoutSession))
   useEffect(() => {
     let active = true
     let unsubscribe: (() => void) | undefined
@@ -39,7 +43,7 @@ export function DemoProvider({ children, repository = productRepository, invento
   const products = useMemo(() => projectCatalog(snapshot, balances), [snapshot, balances])
   const store: DemoStore = {
     snapshot, repository, inventoryBalances: balances, inventoryService: inventory,
-    products, cart, setCart, status: combinedStatus, error: error || balanceError,
+    products, cart, setCart, checkoutController, status: combinedStatus, error: error || balanceError,
     reload: () => { setStatus('loading'); setBalanceStatus('loading'); setAttempt((value) => value + 1) },
     simulateError: () => { setStatus('error'); setError('Ini error tampilan simulasi. Data IndexedDB tidak diubah.') },
   }

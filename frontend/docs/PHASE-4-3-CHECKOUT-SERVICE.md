@@ -2,6 +2,8 @@
 
 POS-Zanna / Zanna-Cell. Implementasi dan verifikasi: 21 Oktober 2026.
 
+**Kelanjutan 4.4:** UI tunai nyata, input fixed/variable, struk snapshot dan recovery kini terhubung melalui service yang dijelaskan di sini. Lihat [integrasi Kasir 4.4](PHASE-4-4-CASHIER-INTEGRATION.md). Pernyataan UI DEMO di bawah merekam batas historis saat 4.3 selesai; engine dan schema v3 tidak diubah pada 4.4.
+
 **Selesai pada lapisan domain/service/repository:** preview, intent persisten, commit tunai atomik, ledger SALE, idempotency, cancel dan recovery. **UI Kasir tetap DEMO** dan tidak mengimpor service checkout nyata. Tidak ada auto-execute saat startup, backend, PostgreSQL, sync, QRIS/Bon nyata, printer, PWA, laporan laba/HPP, commit atau push.
 
 ## 1. Audit dan keputusan awal

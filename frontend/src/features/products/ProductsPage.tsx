@@ -40,7 +40,7 @@ export function ProductsPage() {
   }
 
   return <>
-    <PageHeader title="Produk" description="Master produk tersimpan di browser ini melalui IndexedDB. Transaksi dan pembayaran tetap DEMO."
+    <PageHeader title="Produk" description="Master produk tersimpan di browser ini melalui IndexedDB. Checkout tunai Kasir memakai master dan stok lokal ini."
       action={<div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={status !== 'ready'} onClick={() => setCategoriesOpen(true)}><Tags size={17} aria-hidden="true" />Kategori</Button><Button disabled={status !== 'ready'} onClick={() => setEditor({ product: null })}><Plus size={17} aria-hidden="true" />Tambah produk</Button></div>} />
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-brand/15 bg-brand-soft p-4 text-xs leading-5 text-brand"><p>Data lokal nyata · Tidak otomatis menjadi transaksi · Bukan backup permanen</p><Button variant="secondary" className="text-xs" disabled={status !== 'ready'} onClick={() => { setError(''); setConfirm('seed') }}>Isi Data Demo</Button></div>
     {notice && <p role="status" className="mb-4 rounded-xl bg-success-soft p-4 text-sm text-success">{notice}</p>}

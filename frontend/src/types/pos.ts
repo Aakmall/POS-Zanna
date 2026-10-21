@@ -24,6 +24,7 @@ export interface CatalogItem {
   stockStatus?: StockStatus
   quantityInBaseUnit?: number
   baseUnitName?: string
+  conversion?: import('../domain/inventory').ConversionSnapshot
 }
 
 export interface CartLine { variantId: string; quantity: number }

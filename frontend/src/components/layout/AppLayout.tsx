@@ -28,17 +28,17 @@ export function AppLayout() {
             <House size={19} aria-hidden="true" /> Beranda
           </NavLink>
         </nav>
-        <Link to="/kasir" className="btn btn-primary mt-3">Buka kasir DEMO</Link>
+        <Link to="/kasir" className="btn btn-primary mt-3">Buka kasir</Link>
         <div className="mt-auto hidden border-t border-line pt-5 lg:block">
           <p className="text-xs font-semibold text-ink">Dibangun selangkah demi selangkah.</p>
           <p className="mt-2 text-xs leading-5 text-ink-muted">Fondasi yang sederhana untuk kebutuhan warung sehari-hari.</p>
-          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 3</span>
+          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 4.4</span>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col">
         <header className="flex min-h-20 flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-5 py-4 sm:px-8 xl:px-12">
           <p className="text-sm font-medium text-ink-muted">Sistem Kasir Warung Campuran</p>
-          <Badge>Master lokal / Kasir DEMO</Badge>
+          <Badge>Master lokal / Tunai lokal</Badge>
         </header>
         <main id="konten-utama" tabIndex={-1} className="mx-auto w-full max-w-[1320px] flex-1 px-5 py-8 outline-none sm:px-8 sm:py-10 xl:px-12 xl:py-12">
           <Outlet />

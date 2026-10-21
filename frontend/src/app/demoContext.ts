@@ -4,6 +4,7 @@ import type { CatalogSnapshot } from '../domain/product'
 import type { ProductRepository } from '../domain/productRepository'
 import type { InventoryBalance } from '../domain/inventory'
 import type { InventoryService } from '../services/inventoryOperations'
+import type { CheckoutController } from '../features/cashier/checkoutController'
 
 export interface DemoStore {
   products: CatalogItem[]
@@ -13,6 +14,7 @@ export interface DemoStore {
   inventoryService: InventoryService
   cart: CartLine[]
   setCart: Dispatch<SetStateAction<CartLine[]>>
+  checkoutController: CheckoutController
   status: 'loading' | 'ready' | 'error'
   error: string
   reload: () => void

@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function ProductCard({ product, quantity, justAdded, onAdd, canAdd = true }: Props) {
-  const unavailable = !canAdd || product.stockStatus === 'NOT_INITIALIZED' || product.price === null || product.saleMode === 'variable' || product.isActive === false || quantity >= 1_000_000 || (product.stock !== null && quantity >= product.stock)
+  const unavailable = !canAdd || product.stockStatus === 'NOT_INITIALIZED' || product.price === null || product.isActive === false || quantity >= 1_000_000 || (product.saleMode !== 'variable' && product.stock !== null && quantity >= product.stock)
   const stockLabel = product.stockStatus === 'NOT_INITIALIZED' ? 'Belum diatur' : product.stock === null ? 'Stok belum dicatat' : product.stock === 0 ? product.stockStatus === 'OUT_OF_STOCK' ? 'Stok habis' : 'Kurang untuk 1 kemasan' : `Tersedia ${product.stock}`
   return (
     <article className={`product-card ${justAdded ? 'product-card-added' : ''}`}>
@@ -25,7 +25,7 @@ export function ProductCard({ product, quantity, justAdded, onAdd, canAdd = true
       </div>
       <div className="flex flex-1 flex-col p-3">
         <p className="mb-1 text-[10px] text-ink-muted">{product.category} · {product.isDemo ? 'DEMO' : 'LOKAL'}</p>
-        {product.saleMode === 'variable' && <p className="mb-1 text-[10px] text-warning">Jumlah aktual: fase transaksi mendatang</p>}
+        {product.saleMode === 'variable' && <p className="mb-1 text-[10px] text-brand">Masukkan volume / berat aktual</p>}
         <h3 className="min-h-10 text-[13px] leading-5 font-semibold text-ink">{product.name}</h3>
         {product.stockBase != null && <p className="mt-1 text-[10px] leading-5 text-ink-muted">Saldo bersama: {quantityText(product.stockBase)} {product.baseUnitName}{product.stockStatus ? ` · ${stockStatusLabels[product.stockStatus]}` : ''}</p>}
         <div className="mt-auto flex flex-wrap items-end justify-between gap-1 pt-3">

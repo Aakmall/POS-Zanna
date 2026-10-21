@@ -11,7 +11,7 @@ async function loadSource(path) {
   })
   return import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 }
-const { quoteCart, setCartQuantity } = await loadSource('../src/features/cashier/cartLogic.ts')
+const { quoteCart, setCartQuantity } = await import('../src/features/cashier/cartLogic.ts')
 const { parseWholeAmount } = await loadSource('../src/lib/format.ts')
 const { summarizeSales, groupSalesByDay } = await loadSource('../src/lib/sales.ts')
 const { demoProducts } = await loadSource('../src/mocks/products.ts')

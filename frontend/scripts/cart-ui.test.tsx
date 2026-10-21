@@ -6,6 +6,8 @@ import { ZannaDatabase } from '../src/data/database'
 import { DexieProductRepository } from '../src/data/dexieProductRepository'
 import { DexieInventoryRepository } from '../src/data/dexieInventoryRepository'
 import { InventoryService } from '../src/services/inventoryOperations'
+import { CheckoutService } from '../src/services/checkoutOperations'
+import { DexieCheckoutRepository } from '../src/data/dexieCheckoutRepository'
 
 test('DOM: produk tersimpan muncul; desktop/drawer berbagi keranjang pada empat viewport', { timeout: 15000 }, async () => {
   const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url: 'http://localhost/' })
@@ -29,6 +31,7 @@ test('DOM: produk tersimpan muncul; desktop/drawer berbagi keranjang pada empat 
   const db = new ZannaDatabase(`ui-test-${crypto.randomUUID()}`)
   const repository = new DexieProductRepository(db)
   const inventory = new InventoryService(new DexieInventoryRepository(db))
+  const checkout = new CheckoutService(new DexieCheckoutRepository(db))
   await repository.initialize()
   const category = await repository.saveCategory('Uji')
   const snapshot = await repository.getSnapshot()
@@ -42,7 +45,7 @@ test('DOM: produk tersimpan muncul; desktop/drawer berbagi keranjang pada empat 
     assert.fail('DOM tidak mencapai state yang diharapkan')
   }
   try {
-    await act(async () => { root.render(<MemoryRouter initialEntries={['/kasir']}><DemoProvider repository={repository} inventory={inventory}><main id="operasional" tabIndex={-1}><CashierPage /></main></DemoProvider></MemoryRouter>) })
+    await act(async () => { root.render(<MemoryRouter initialEntries={['/kasir']}><DemoProvider repository={repository} inventory={inventory} checkout={checkout}><main id="operasional" tabIndex={-1}><CashierPage /></main></DemoProvider></MemoryRouter>) })
     await wait(() => !!browser.document.querySelector('[aria-label="Tambah Produk Uji"]'))
     assert.equal(browser.document.querySelector<HTMLButtonElement>('.product-add')!.disabled, true)
     await act(async () => { await inventory.execute({ operationId: crypto.randomUUID(), productId: stored.id, movementType: 'OPENING_BALANCE', inputQuantity: 10000, inputUnitId: stored.baseUnitId, reason: '' }) })
@@ -80,6 +83,7 @@ test('DOM: produk tersimpan muncul; desktop/drawer berbagi keranjang pada empat 
       assert.ok(payButton)
       assert.equal(payButton.disabled, false)
       await act(async () => { payButton.click() })
+      await wait(() => !!browser.document.querySelector('input#cash'))
       const paymentDialog = browser.document.querySelector('dialog')!
       assert.match(paymentDialog.textContent!, /Pembayaran Tunai/)
       assert.ok(paymentDialog.querySelector('input#cash'))
@@ -98,12 +102,14 @@ test('DOM: produk tersimpan muncul; desktop/drawer berbagi keranjang pada empat 
     assert.equal((await inventory.getHistory(stored.id)).length, 1)
     const pay = Array.from(browser.document.querySelectorAll<HTMLButtonElement>('.cart-panel button')).find((button) => button.textContent?.startsWith('Bayar '))!
     await act(async () => { pay.click() })
+    await wait(() => !!Array.from(browser.document.querySelectorAll<HTMLButtonElement>('dialog button')).find((button) => button.textContent === 'Uang pas'))
     await act(async () => { Array.from(browser.document.querySelectorAll<HTMLButtonElement>('dialog button')).find((button) => button.textContent === 'Uang pas')!.click() })
     await act(async () => { browser.document.querySelector<HTMLButtonElement>('dialog button[type="submit"]')!.click() })
-    await wait(() => !!browser.document.querySelector('dialog [role="status"]')?.textContent?.includes('Berhasil disimulasikan'))
-    assert.equal((await inventory.getBalances())[0].quantityBase, 10000)
-    assert.equal((await inventory.getHistory(stored.id)).length, 1)
-    await act(async () => { Array.from(browser.document.querySelectorAll<HTMLButtonElement>('dialog button')).find((button) => button.textContent === 'Selesai tanpa struk')!.click() })
+    await wait(() => !!browser.document.querySelector('dialog [role="status"]')?.textContent?.includes('Pembayaran tunai tersimpan'))
+    assert.equal((await inventory.getBalances())[0].quantityBase, 9000)
+    assert.equal((await inventory.getHistory(stored.id)).length, 2)
+    assert.equal(await db.sales.count(), 1)
+    await act(async () => { Array.from(browser.document.querySelectorAll<HTMLButtonElement>('dialog button')).find((button) => button.textContent === 'Tutup struk')!.click() })
     await act(async () => { browser.document.querySelector<HTMLButtonElement>('.product-add')!.click() })
     const product = (await repository.getSnapshot()).products[0]
     const current = await repository.getSnapshot()

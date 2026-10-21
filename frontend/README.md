@@ -1,6 +1,6 @@
 # Zanna-Cell — POS-Zanna
 
-Sistem Kasir Warung Campuran. **Fase 4 Langkah 4.3 menyediakan engine checkout tunai atomik pada domain/service/repository Dexie v3**. Master produk dan persediaan tersimpan di IndexedDB. UI Kasir, pembayaran, Bon, serta laporan penjualan tetap DEMO; engine belum dihubungkan ke UI.
+Sistem Kasir Warung Campuran. **Fase 4 Langkah 4.4 menghubungkan checkout tunai nyata ke UI Kasir** menggunakan engine atomik Dexie v3. Penjualan, item, ledger dan saldo tersimpan lokal; struk berasal dari snapshot penjualan. QRIS/Bon DEMO dinonaktifkan; dashboard/laporan tetap data sampel.
 
 ## Menjalankan proyek
 
@@ -20,14 +20,16 @@ npm run dev -- --host 0.0.0.0
 
 Gunakan alamat Network dari terminal. **localhost, IP LAN, port, profil browser, dan perangkat berbeda mempunyai penyimpanan berbeda.** Data belum disinkronkan. Operasi persediaan tidak memerlukan API/internet setelah frontend tersedia; membuka ulang aplikasi tanpa server/aset yang tersedia belum dijamin karena PWA/service worker belum dibuat.
 
-## Alur penggunaan Fase 3
+## Alur penggunaan lokal
 
 1. Buka `/produk`, buat kategori dan produk beserta satuan dasar/varian. Pilih jenis persediaan dan kemasan yang sah; BBM wajib dasar Liter/ml. Produk lama perlu review kebijakan sebelum kemasan tambahan dipakai lagi. Database baru mulai tanpa produk; **Isi Data Demo** hanya berjalan atas tindakan dan konfirmasi pengguna.
 2. Buka `/stok`. Produk lama maupun baru berstatus **Belum diatur** sampai stok awal dibuat. Stok awal 0 diperbolehkan dan berbeda dengan belum diatur.
 3. Atur stok awal sekali. Selanjutnya gunakan Tambah Stok atau Koreksi Stok. Koreksi wajib alasan; koreksi keluar memerlukan konfirmasi dan tidak boleh melebihi saldo.
 4. Pilih satuan yang sesuai dan periksa pratinjau konversi. Isi dus/jeriken ditentukan pengguna atau konfigurasi varian, bukan ditebak aplikasi.
 5. Buka Riwayat untuk melihat saldo sebelum/sesudah, alasan, UUID operasi, dan snapshot konversi. Tidak ada edit/hapus ledger melalui UI.
-6. Produk dan Kasir membaca saldo yang sama. Varian berbagi stok dasar produk; batas keranjang memperhitungkan gabungan varian. Menambah keranjang dan pembayaran DEMO tidak mengubah persediaan.
+6. Produk dan Kasir membaca saldo yang sama. Varian berbagi stok dasar produk; menambah keranjang belum mereservasi/mengurangi stok. Fixed memakai jumlah kemasan bulat; variable memakai input volume/berat maksimal tiga desimal.
+7. Pilih Bayar → tinjau preview → isi uang diterima → konfirmasi tunai. Sukses menampilkan struk tersimpan, mengurangi stok, dan mengosongkan hanya keranjang terkait. Struk terakhir dapat dibuka kembali.
+8. Jika ada intent belum selesai setelah refresh, periksa hasil lalu lanjutkan request yang sama atau batalkan untuk koreksi. Status **uncertain** harus diperiksa; jangan menerima pembayaran ulang/membuat ID baru atau menghapus site data.
 
 Pada layar di bawah 1024px, gunakan **Keranjang & Bayar** di bagian atas katalog atau tombol tetap di atas navigasi bawah. Keduanya membuka drawer dengan keranjang yang sama.
 
@@ -40,6 +42,7 @@ npm run typecheck
 npm run test:unit
 npm run test:inventory
 npm run test:checkout
+npm run test:checkout-ui
 npm test
 npm run build
 ```
@@ -56,11 +59,11 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 
 | Rute | Perilaku |
 | --- | --- |
-| `/` | Welcome dan akses fitur lokal / Kasir DEMO |
+| `/` | Welcome dan akses fitur lokal / Kasir |
 | `/dashboard` | Ringkasan penjualan sampel; indikator stok memakai inventory aktual |
 | `/produk` | CRUD master lokal, kategori, varian, barcode/SKU, status aktif, saldo dan status stok |
 | `/stok` | Saldo aktual, stok awal/masuk, koreksi masuk/keluar, ledger, pencarian/filter |
-| `/kasir` | Katalog dan stok lokal; keranjang/pembayaran DEMO tanpa mutasi stok |
+| `/kasir` | Checkout tunai atomik, input fixed/variable, struk digital dan recovery; QRIS/Bon DEMO dinonaktifkan |
 | `/bon` | Pelanggan dan cicilan fiktif pada state halaman |
 | `/laporan` | Sampel tetap 13–19 Oktober 2026, bukan transaksi nyata |
 | `/pengaturan` | Rancangan preferensi, printer, backup, dan informasi aplikasi |
@@ -71,6 +74,7 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 ```text
 frontend/
 ├── docs/
+│   ├── PHASE-4-4-CASHIER-INTEGRATION.md
 │   ├── PHASE-4-3-CHECKOUT-SERVICE.md
 │   ├── PROJECT-BACKLOG.md
 │   ├── PHASE-4-2-DOMAIN-DATABASE.md
@@ -103,9 +107,11 @@ frontend/
 
 Database tetap **`zanna-cell-db`**. Skema v1 (`products`, `categories`, `units`, `variants`) dipertahankan. Skema v2 menambahkan `inventoryBalances` dan `stockMovements` tanpa menghapus/mereset data lama, mengubah UUID/barcode, atau otomatis memberi stok nol.
 
-**Schema v3** menambahkan `sales`, `saleItems`, `checkoutIntents` dan indeks relasi `saleId`/`saleItemId` pada ledger. Deklarasi v1/v2 tetap. Tabel tidak diisi otomatis. Model/indeks sendiri tidak menjamin foreign key; engine 4.3 menegakkan relasi dan menulis Sale, semua item, ledger SALE, saldo serta intent COMMITTED dalam satu transaksi. UI Kasir belum memanggil engine ini.
+**Schema v3** menambahkan `sales`, `saleItems`, `checkoutIntents` dan indeks relasi `saleId`/`saleItemId` pada ledger. Deklarasi v1/v2 tetap. Engine menegakkan relasi dan menulis Sale, semua item, ledger SALE, saldo serta intent COMMITTED dalam satu transaksi. UI memanggil CheckoutService, tidak menulis Dexie langsung. Fase 4.4 tidak mengubah schema/database version atau menghapus data.
 
 `CheckoutService` menyediakan preview/prepare/execute/getResult/listUnresolved/cancel. prepare membekukan request; execute membaca ulang master/saldo dan commit atomik; replay sukses mengembalikan snapshot lama tanpa write kedua. Tidak ada auto-execute saat aplikasi dibuka. `npm run test:checkout` menguji domain/migration/service pada database terisolasi.
+
+Penunjuk checkout aktif disimpan **per tab** dalam sessionStorage, dengan jurnal pemulihan durable **per ID operasi** di localStorage sebelum prepare/execute. ID struk terakhir juga disimpan lokal agar dapat dibuka setelah tab ditutup. Semua pointer diperiksa melalui CheckoutService; IndexedDB tetap otoritas penjualan. Cart yang belum dikonfirmasi masih di memori dan tidak dipulihkan otomatis. Intent PREPARED juga ditemukan melalui listUnresolved. Riwayat seluruh penjualan belum dibuat; bila seluruh pointer lokal dihapus, UI belum menyediakan pencarian Sale committed lama.
 
 Identitas memakai UUID; waktu ISO UTC; harga integer rupiah; kuantitas integer berskala **1000 per satuan dasar** sesuai Fase 2. `minimumStock` menggunakan skala yang sama; `null` berarti belum diatur. Satuan dasar tidak dapat diganti setelah produk dibuat. Stok diskret tidak menerima pecahan. Perhitungan konversi memakai BigInt sementara untuk validasi presisi; nilai tersimpan tetap number integer aman.
 
@@ -113,6 +119,7 @@ Setiap perubahan saldo dan penambahan ledger berada dalam satu transaksi Dexie. 
 
 ## Dokumentasi pembelajaran
 
+- [Fase 4 · Langkah 4.4: integrasi UI tunai, scaled quantity, receipt, recovery, pengujian dan latihan](docs/PHASE-4-4-CASHIER-INTEGRATION.md)
 - [Fase 4 · Langkah 4.3: service atomik, ledger, idempotency, concurrency, rollback dan recovery](docs/PHASE-4-3-CHECKOUT-SERVICE.md)
 - [Project Backlog: optimisasi/nonkritis yang ditunda](docs/PROJECT-BACKLOG.md)
 - [Fase 4 · Langkah 4.2: domain, kalkulator, migrasi v3, hasil tes, lima latihan dan DevTools](docs/PHASE-4-2-DOMAIN-DATABASE.md)
@@ -126,12 +133,12 @@ Setiap perubahan saldo dan penambahan ledger berada dalam satu transaksi Dexie. 
 
 ## Pemeriksaan manual pengguna
 
-Checklist lengkap yang belum ditandai lulus tersedia di panduan belajar. Periksa setidaknya: data lama tetap ada, stok awal 0/30, tambah 10, koreksi keluar 2 menghasilkan 38, alasan wajib, penolakan saldo negatif, ledger, konversi dus/kg/L/mL/jeriken, minimum stok, refresh, serta Console tanpa error. Uji keranjang dan pembayaran DEMO di 390×844, 768×1024, 1024×768, dan 1366×768; pastikan saldo tidak berubah oleh DEMO.
+Checklist lengkap tersedia pada dokumentasi 4.4. Uji tunai, kembalian, perubahan harga/stok, volume aktual, struk terakhir, refresh/recovery dan drawer pada 390×844, 768×1024, 1024×768, serta 1366×768. Pastikan tunai mengurangi stok tepat sekali dan QRIS/Bon DEMO tidak bisa dijalankan. Pemeriksaan visual/native browser/tablet oleh pengguna masih pending; tes jsdom bukan pengganti pemeriksaan tersebut.
 
 ## Keterbatasan dan tahap berikutnya
 
 IndexedDB bukan backup permanen: penghapusan site data, eviction, mode privat, atau kerusakan perangkat dapat menghilangkan data. Backup/restore dan autentikasi tepercaya belum tersedia. Pembatasan UI bukan proteksi owner terhadap pengguna yang menguasai browser/DevTools. Ledger tidak memiliki audit server atau proteksi kriptografis.
 
-Belum ada integrasi checkout nyata pada UI Kasir, reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Engine tunai sudah mendukung volume presisi dan ledger SALE, tetapi UI volume/receipt/recovery aktif masih langkah berikutnya. Riwayat ditampilkan bertahap, tetapi subscription masih membaca seluruh riwayat satu produk.
+Belum ada reservasi stok keranjang, riwayat penjualan lengkap, retur/pembatalan penjualan, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Dashboard/laporan belum membaca Sale nyata. Riwayat inventory ditampilkan bertahap, tetapi subscription masih membaca seluruh riwayat satu produk. Peringatan bundle >500 kB dan penyempurnaan nonkritis dicatat di backlog.
 
-**Berhenti pada Langkah 4.3.** Engine checkout atomik sudah tersedia dan diuji; UI Kasir tetap DEMO. Integrasi Langkah 4.4 menunggu evaluasi dan persetujuan pengguna. Tidak ada Git commit/push otomatis.
+**Berhenti pada Langkah 4.4.** Integrasi tunai siap untuk validasi manual pengguna. Fase 4.5 menunggu evaluasi dan persetujuan. Tidak ada Git commit/push otomatis.
