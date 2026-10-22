@@ -1,6 +1,6 @@
 # Zanna-Cell — POS-Zanna
 
-Sistem Kasir Warung Campuran. **Fase 4 Langkah 4.5 menyediakan Riwayat Penjualan dan pembukaan kembali struk secara hanya-baca**. Checkout tunai menyimpan penjualan, item, ledger dan saldo secara atomik di Dexie v3. Riwayat memakai snapshot transaksi, pencarian nomor struk, tanggal lokal dan pagination. QRIS/Bon DEMO dinonaktifkan; dashboard/laporan tetap data sampel.
+Sistem Kasir Warung Campuran. **Fase 4 selesai secara teknis: checkout tunai atomik, riwayat/struk dan Dashboard penjualan nyata**. Dashboard hanya-baca memakai hari lokal, omzet, transaksi/baris item, ringkasan tujuh hari, produk terlaris dan saldo nyata, diperbarui setelah commit. Schema tetap Dexie v3. QRIS/Bon DEMO dinonaktifkan; halaman Laporan tetap data sampel. Lihat [laporan final Fase 4](docs/PHASE-4-FINAL-REPORT.md).
 
 ## Menjalankan proyek
 
@@ -31,6 +31,7 @@ Gunakan alamat Network dari terminal. **localhost, IP LAN, port, profil browser,
 7. Pilih Bayar → tinjau preview → isi uang diterima → konfirmasi tunai. Sukses menampilkan struk tersimpan, mengurangi stok, dan mengosongkan hanya keranjang terkait. Struk terakhir dapat dibuka kembali.
 8. Jika ada intent belum selesai setelah refresh, periksa hasil lalu lanjutkan request yang sama atau batalkan untuk koreksi. Status **uncertain** harus diperiksa; jangan menerima pembayaran ulang/membuat ID baru atau menghapus site data.
 9. Buka **Riwayat Penjualan** di sidebar/Menu atau `/penjualan`. Cari nomor struk, atur tanggal lalu Terapkan filter; gunakan Muat lebih banyak untuk halaman berikutnya. Lihat struk membuka detail tersimpan tanpa membuat transaksi atau mengurangi stok. Reset filter mengembalikan daftar tanpa pencarian.
+10. Buka `/dashboard` untuk omzet/transaksi/baris item hari ini, tujuh hari kalender lokal, recent, top products dan stok. Omzet bukan laba; ranking berdasarkan omzet dengan quantity dipisahkan per satuan jual. Pembacaan tidak mengurangi stok, dan perubahan checkout/inventory memicu pembaruan otomatis.
 
 Pada layar di bawah 1024px, gunakan **Keranjang & Bayar** di bagian atas katalog atau tombol tetap di atas navigasi bawah. Keduanya membuka drawer dengan keranjang yang sama.
 
@@ -45,6 +46,7 @@ npm run test:inventory
 npm run test:checkout
 npm run test:checkout-ui
 npm run test:sales-history
+npm run test:phase4-final
 npm test
 npm run build
 ```
@@ -62,7 +64,7 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 | Rute | Perilaku |
 | --- | --- |
 | `/` | Welcome dan akses fitur lokal / Kasir |
-| `/dashboard` | Ringkasan penjualan sampel; indikator stok memakai inventory aktual |
+| `/dashboard` | Penjualan nyata/live dan inventory aktual, hari lokal; omzet bukan laba |
 | `/produk` | CRUD master lokal, kategori, varian, barcode/SKU, status aktif, saldo dan status stok |
 | `/stok` | Saldo aktual, stok awal/masuk, koreksi masuk/keluar, ledger, pencarian/filter |
 | `/kasir` | Checkout tunai atomik, input fixed/variable, struk digital dan recovery; QRIS/Bon DEMO dinonaktifkan |
@@ -78,6 +80,7 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 ```text
 frontend/
 ├── docs/
+│   ├── PHASE-4-FINAL-REPORT.md
 │   ├── PHASE-4-5-SALES-HISTORY.md
 │   ├── PHASE-4-4-CASHIER-INTEGRATION.md
 │   ├── PHASE-4-3-CHECKOUT-SERVICE.md
@@ -126,6 +129,8 @@ Setiap perubahan saldo dan penambahan ledger berada dalam satu transaksi Dexie. 
 
 ## Dokumentasi pembelajaran
 
+- [Panduan satuan produk: penjualan langsung, kemasan, isi, contoh bensin/solar/beras/minuman/mi, kompatibilitas edit dan audit UX](docs/USER-GUIDE-PRODUCT-UNITS.md)
+- [Final Fase 4: gabungan Dashboard 4.6 + audit 4.7, seluruh alur, tes, backlog, checklist dan kesiapan Fase 5](docs/PHASE-4-FINAL-REPORT.md)
 - [Fase 4 · Langkah 4.5: arsitektur riwayat, query/cursor, timezone, snapshot, tes dan latihan](docs/PHASE-4-5-SALES-HISTORY.md)
 - [Fase 4 · Langkah 4.4: integrasi UI tunai, scaled quantity, receipt, recovery, pengujian dan latihan](docs/PHASE-4-4-CASHIER-INTEGRATION.md)
 - [Fase 4 · Langkah 4.3: service atomik, ledger, idempotency, concurrency, rollback dan recovery](docs/PHASE-4-3-CHECKOUT-SERVICE.md)
@@ -147,6 +152,6 @@ Pengguna melaporkan checkout bensin dan produk lain sudah diuji manual pada Fase
 
 IndexedDB bukan backup permanen: penghapusan site data, eviction, mode privat, atau kerusakan perangkat dapat menghilangkan data. Backup/restore dan autentikasi tepercaya belum tersedia. Pembatasan UI bukan proteksi owner terhadap pengguna yang menguasai browser/DevTools. Ledger tidak memiliki audit server atau proteksi kriptografis.
 
-Belum ada reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Dashboard/laporan belum membaca Sale nyata. Riwayat Penjualan hanya-baca dan on-demand; gunakan Muat ulang untuk checkout dari tab lain. Pencarian substring dapat memindai banyak header walaupun jumlah hasil per halaman dibatasi. Riwayat inventory masih membaca seluruh riwayat satu produk. Peringatan bundle >500 kB dan penyempurnaan nonkritis dicatat di backlog.
+Belum ada reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, transaksi QRIS/Bon nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Halaman Laporan belum membaca Sale nyata; Dashboard sudah nyata. Riwayat Penjualan hanya-baca dan on-demand; gunakan Muat ulang untuk checkout dari tab lain. Pencarian substring dan agregasi Dashboard tujuh hari dapat mahal pada data besar. Riwayat inventory masih membaca seluruh riwayat satu produk. Peringatan bundle >500 kB dan penyempurnaan nonkritis dicatat di backlog.
 
-**Berhenti pada Langkah 4.5.** Riwayat dan struk siap untuk validasi manual pengguna. Fase berikutnya menunggu evaluasi dan persetujuan. Tidak ada Git commit/push otomatis.
+**Fase 4 siap ditutup berdasarkan pengujian otomatis final.** Dashboard dan audit manual/native yang baru tetap perlu divalidasi pengguna, lihat checklist laporan final. Implementasi Fase 5 menunggu instruksi dan belum dimulai. Tidak ada Git commit/push otomatis.

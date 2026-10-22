@@ -13,15 +13,16 @@ import { SettingsPage } from '../features/settings/SettingsPage'
 import { SalesHistoryPage } from '../features/sales-history/SalesHistoryPage'
 import { SaleDetailsPage } from '../features/sales-history/SaleDetailsPage'
 import type { SalesHistoryReader } from '../domain/salesHistory'
+import type { DashboardService } from '../services/dashboardOperations'
 
-export function AppRoutes({ salesHistory }: { salesHistory?: SalesHistoryReader } = {}) {
+export function AppRoutes({ salesHistory, dashboard }: { salesHistory?: SalesHistoryReader; dashboard?: DashboardService } = {}) {
   return (
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
       </Route>
       <Route element={<OperationalLayout />}>
-        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="dashboard" element={<DashboardPage service={dashboard} />} />
         <Route path="kasir" element={<CashierPage />} />
         <Route path="produk" element={<ProductsPage />} />
         <Route path="stok" element={<StockPage />} />

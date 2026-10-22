@@ -1,69 +1,41 @@
-﻿import { AlertTriangle, ArrowRight, Banknote, PackageCheck, ReceiptText, ShoppingBasket, Users } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Banknote, PackageX, ReceiptText, ShoppingBasket } from 'lucide-react'
 import { Link } from 'react-router'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { StatCard } from '../../components/ui/StatCard'
-import { ProductMark } from '../../components/ui/ProductMark'
-import { demoCustomers, demoSales } from '../../mocks/business'
-import { displayDate, money } from '../../lib/format'
-import { summarizeSales } from '../../lib/sales'
-import { useDemoStore } from '../../hooks/useDemoStore'
-import { useInventory } from '../../hooks/useInventory'
+import { Button } from '../../components/ui/Button'
+import { money } from '../../lib/format'
 import { quantityText } from '../../domain/quantity'
+import type { DashboardStock } from '../../domain/dashboard'
+import type { DashboardService } from '../../services/dashboardOperations'
+import { dashboardService } from '../../services/dashboardService'
+import { useDashboard } from './useDashboard'
 
-export function DashboardPage() {
-  const { products, status } = useDemoStore()
-  const { rows } = useInventory()
-  const sampleDate = '2026-10-19'
-  const sales = demoSales.filter((sale) => sale.date === sampleDate)
-  const summary = summarizeSales(sales)
-  const lowStock = products.filter((product) => product.stockStatus === 'LOW_STOCK' || product.stockStatus === 'OUT_OF_STOCK').filter((product, index, items) => items.findIndex((item) => item.productId === product.productId) === index).sort((a, b) => (a.stockBase ?? 0) - (b.stockBase ?? 0))
-
-  return (
-    <>
-      <PageHeader title="Ringkasan warung" description="Penjualan sampel DEMO dan persediaan lokal yang Anda catat. Angka penjualan di halaman ini belum membaca transaksi tunai Kasir."
-        action={<span className="inline-flex min-h-11 items-center rounded-control border border-line bg-surface px-4 text-xs text-ink-muted">19 Oktober 2026 · Sampel tetap</span>} />
+function StockList({ title, rows }: { title: string; rows: readonly DashboardStock[] }) {
+  return <section className="panel overflow-hidden" aria-label={title}><h2 className="border-b border-line px-5 py-4 text-sm font-semibold">{title} · {rows.length} produk</h2>
+    {!rows.length ? <p className="p-5 text-sm text-ink-muted">Tidak ada produk pada status ini.</p> : <ul className="divide-y divide-line px-5">{rows.slice(0, 5).map((row) => <li key={row.productId} className="flex flex-wrap items-center justify-between gap-3 py-4"><div><h3 className="text-xs font-semibold">{row.name}{!row.active && ' · Nonaktif'}</h3><p className="mt-1 text-[11px] text-ink-muted">Minimum {row.minimumStock === null ? 'belum diatur' : `${quantityText(row.minimumStock)} ${row.unit}`}</p></div><span className="pill bg-warning-soft text-warning">{quantityText(row.quantityBase)} {row.unit}</span></li>)}</ul>}
+    <Link to="/stok" className="flex min-h-12 items-center justify-center gap-2 border-t border-line text-xs font-semibold text-brand">Lihat persediaan <ArrowRight size={15} aria-hidden="true" /></Link>
+  </section>
+}
+export function DashboardPage({ service = dashboardService }: { service?: DashboardService }) {
+  const { snapshot, error, retry } = useDashboard(service)
+  return <>
+    <PageHeader title="Ringkasan warung" description="Penjualan tunai dan persediaan nyata dari perangkat ini. Omzet adalah nilai penjualan, bukan laba." action={<Button variant="secondary" onClick={retry}>Muat ulang</Button>} />
+    {error ? <div className="panel p-6"><p role="alert" className="text-sm text-danger">{error}</p><Button className="mt-4" onClick={retry}>Coba lagi</Button></div> : !snapshot ? <p role="status" className="panel p-6 text-sm text-ink-muted">Membaca Dashboard…</p> : <>
+      <p className="mb-4 text-xs text-ink-muted">{new Date(`${snapshot.today.date}T12:00:00`).toLocaleDateString('id-ID', { dateStyle: 'long' })} · Zona waktu perangkat · Diperbarui otomatis</p>
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total Penjualan" value={money(summary.revenue)} note="Sampel 19 Okt 2026 · DEMO" icon={Banknote} />
-        <StatCard label="Total Transaksi" value={String(summary.count)} note="Transaksi contoh, bukan hasil checkout" icon={ReceiptText} />
-        <StatCard label="Jumlah Pelanggan" value={String(demoCustomers.length)} note="Pelanggan fiktif dalam data contoh" icon={Users} />
-        <StatCard label="Produk Stok Rendah" value={status === 'ready' ? String(rows.filter((row) => row.status === 'LOW_STOCK').length) : '—'} note="Saldo positif ≤ minimum · master lokal" icon={AlertTriangle} />
+        <div data-metric="revenue"><StatCard label="Omzet hari ini" value={money(snapshot.today.revenue)} note="Penjualan COMPLETED · bukan laba" icon={Banknote} /></div>
+        <div data-metric="transactions"><StatCard label="Transaksi hari ini" value={String(snapshot.today.transactions)} note="Pembayaran tunai tersimpan" icon={ReceiptText} /></div>
+        <div data-metric="items"><StatCard label="Baris item terjual" value={String(snapshot.today.itemRows)} note="Hari ini · bukan gabungan kuantitas" icon={ShoppingBasket} /></div>
+        <div><StatCard label="Produk stok habis" value={String(snapshot.outOfStock.length)} note={`${snapshot.lowStock.length} menipis · ${snapshot.uninitialized} belum diatur`} icon={PackageX} /></div>
       </div>
-
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section className="panel min-w-0 overflow-hidden" aria-labelledby="activity-title">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <div><h2 id="activity-title" className="text-sm font-semibold">Transaksi terbaru</h2><p className="mt-1 text-[11px] text-ink-muted">Aktivitas ilustrasi · 13–19 Oktober 2026</p></div>
-            <Link to="/laporan" className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-brand">Lihat laporan <ArrowRight size={15} aria-hidden="true" /></Link>
-          </div>
-          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Daftar transaksi contoh">
-            <table className="data-table"><thead><tr><th scope="col">Transaksi / pelanggan</th><th scope="col">Metode</th><th scope="col">Total DEMO</th></tr></thead>
-              <tbody>{[...demoSales].reverse().slice(0, 5).map((sale) => <tr key={sale.id}>
-                <td><p className="text-xs font-semibold">{sale.id}</p><p className="mt-1.5 text-[11px] text-ink-muted">{sale.customer}</p><p className="mt-1 text-[10px] text-ink-muted">{displayDate(sale.date)}</p></td>
-                <td><span className={`pill ${sale.method === 'Bon' ? 'bg-warning-soft text-warning' : 'bg-brand-soft text-brand'}`}>{sale.method}</span></td>
-                <td className="text-xs font-semibold tabular-nums">{money(sale.total)}</td>
-              </tr>)}</tbody>
-            </table>
-          </div>
-          <p className="border-t border-line px-5 py-4 text-[11px] leading-5 text-ink-muted">Transaksi ilustrasi ini tidak berubah ketika Anda menyelesaikan pembayaran tunai nyata di Kasir.</p>
-        </section>
-
-        <section className="panel overflow-hidden" aria-labelledby="stock-title">
-          <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4"><div><h2 id="stock-title" className="text-sm font-semibold">Persediaan perlu perhatian</h2><p className="mt-1 text-[11px] text-ink-muted">Jaga kebutuhan warung tetap tersedia.</p></div><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning"><PackageCheck size={18} aria-hidden="true" /></span></div>
-          {status !== 'ready' ? <p role="status" className="p-6 text-sm leading-6 text-ink-muted">{status === 'loading' ? 'Membaca katalog lokal…' : 'Katalog lokal gagal dimuat. Buka halaman Stok untuk mencoba lagi.'}</p> : lowStock.length === 0 ? <div className="p-6 text-sm leading-6 text-ink-muted">Tidak ada stok menipis/habis yang tercatat. Periksa produk yang belum diatur pada halaman Stok.</div> : (
-            <ul className="divide-y divide-line px-5">{lowStock.slice(0, 5).map((product) => <li key={product.id} className="flex items-center gap-3 py-4">
-              <ProductMark product={product} small />
-              <div className="min-w-0 flex-1"><h3 className="text-xs font-semibold">{product.name}</h3><p className="mt-1.5 text-[11px] text-ink-muted">Minimum {product.minimumStock ?? '—'} {product.baseUnitName}</p></div>
-              <span className={`pill shrink-0 ${product.stockStatus === 'OUT_OF_STOCK' ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'}`}>{product.stockStatus === 'OUT_OF_STOCK' ? 'Habis' : `${quantityText(product.stockBase ?? 0)} ${product.baseUnitName}`}</span>
-            </li>)}</ul>
-          )}
-          <Link to="/stok" className="flex min-h-14 items-center justify-center gap-2 border-t border-line text-xs font-semibold text-brand hover:bg-brand-soft">Kelola persediaan lokal <ArrowRight size={15} aria-hidden="true" /></Link>
-        </section>
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        <section className="panel p-5" aria-label="Penjualan tujuh hari"><h2 className="text-sm font-semibold">Omzet tujuh hari</h2><p className="mt-1 mb-5 text-xs text-ink-muted">Enam hari sebelumnya dan hari ini · Rupiah</p><ul className="space-y-4">{snapshot.days.map((day) => <li key={day.date}><div className="mb-1 flex flex-wrap justify-between gap-2 text-xs"><span>{new Date(`${day.date}T12:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · {day.transactions} transaksi</span><strong>{money(day.revenue)}</strong></div><div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-surface-muted"><div className="h-full bg-brand" style={{ width: `${day.revenue / Math.max(1, ...snapshot.days.map((entry) => entry.revenue)) * 100}%` }} /></div></li>)}</ul></section>
+        <section className="panel p-5" aria-label="Produk terlaris"><h2 className="text-sm font-semibold">Produk terlaris</h2><p className="mt-1 mb-4 text-xs leading-5 text-ink-muted">Tujuh hari · berdasarkan omzet · nama dan satuan saat dijual</p>{!snapshot.topProducts.length ? <p className="text-sm text-ink-muted">Belum ada penjualan dalam tujuh hari ini.</p> : <ol className="divide-y divide-line">{snapshot.topProducts.map((row) => <li key={row.key} className="flex flex-wrap justify-between gap-3 py-3"><div><h3 className="text-xs font-semibold">{row.name}</h3><p className="mt-1 text-xs text-ink-muted">{quantityText(row.quantity)} {row.unit.name} · {row.itemRows} baris</p></div><strong className="text-sm">{money(row.revenue)}</strong></li>)}</ol>}</section>
+        <section className="panel overflow-hidden" aria-label="Transaksi terbaru"><div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4"><h2 className="text-sm font-semibold">Transaksi terbaru</h2><Link className="text-xs font-semibold text-brand" to="/penjualan">Lihat riwayat</Link></div>{!snapshot.recent.length ? <p className="p-5 text-sm text-ink-muted">Belum ada transaksi tersimpan.</p> : <ul className="divide-y divide-line px-5">{snapshot.recent.map(({ sale }) => <li key={sale.id} className="py-4"><Link className="block break-all text-xs font-semibold text-brand underline" to={`/penjualan/${sale.id}`}>{sale.receiptNumber}</Link><div className="mt-2 flex flex-wrap justify-between gap-2 text-xs"><time dateTime={sale.createdAt}>{new Date(sale.createdAt).toLocaleString('id-ID')} · Tunai</time><strong>{money(sale.total)}</strong></div></li>)}</ul>}</section>
+        <div className="space-y-6"><StockList title="Produk stok menipis" rows={snapshot.lowStock} /><StockList title="Produk stok habis" rows={snapshot.outOfStock} /></div>
       </div>
-
-      <section className="mt-6 flex flex-wrap items-center justify-between gap-5 rounded-panel border border-brand/15 bg-brand-soft p-5 sm:p-6">
-        <div className="flex items-center gap-4"><span className="hidden size-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand sm:flex"><ShoppingBasket size={25} strokeWidth={1.5} aria-hidden="true" /></span><div><h2 className="text-sm font-semibold">Siap mencoba alur belanja?</h2><p className="mt-1.5 text-xs leading-6 text-ink-muted">Pilih produk, susun keranjang, dan simulasikan pembayaran.</p></div></div>
-        <Link className="btn btn-primary text-xs" to="/kasir">Buka kasir <ArrowRight size={16} aria-hidden="true" /></Link>
-      </section>
-    </>
-  )
+      {!!snapshot.uninitialized && <p className="mt-5 flex items-center gap-2 text-xs text-warning"><AlertTriangle size={16} aria-hidden="true" />{snapshot.uninitialized} produk belum mempunyai stok awal; tidak dihitung sebagai stok habis.</p>}
+    </>}
+    <p className="mt-5 text-xs leading-5 text-ink-muted">Dashboard hanya-baca. QRIS dan Bon belum aktif; halaman Laporan masih memakai data DEMO.</p>
+  </>
 }

@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router'
+﻿import { Link, useSearchParams } from 'react-router'
 import { ReceiptText } from 'lucide-react'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { Button } from '../../components/ui/Button'
@@ -38,6 +38,6 @@ export function SalesHistoryPage({ service = salesHistoryService }: { service?: 
       </li>)}</ol>
       {history.nextCursor && <Button variant="secondary" className="mt-5 w-full sm:w-auto" disabled={history.loadingMore} onClick={() => void history.loadMore()}>{history.loadingMore ? 'Memuat transaksi…' : 'Muat lebih banyak'}</Button>}
     </section>}
-    <p className="mt-5 text-xs leading-5 text-ink-muted">Riwayat hanya-baca dari IndexedDB lokal. Dashboard dan laporan masih memakai data DEMO. QRIS dan Bon belum tersedia sebagai pembayaran nyata.</p>
+    <p className="mt-5 text-xs leading-5 text-ink-muted">Riwayat hanya-baca dari IndexedDB lokal. Dashboard memakai penjualan nyata; halaman Laporan masih memakai data DEMO. QRIS dan Bon belum tersedia sebagai pembayaran nyata.</p>
   </>
 }
