@@ -221,7 +221,7 @@ test('migrasi v1 → v4 mempertahankan seluruh master/barcode/skala dan tidak se
   old.close()
   const upgraded = new ZannaDatabase(name); databases.push(upgraded)
   await upgraded.open()
-  assert.equal(upgraded.verno, 4)
+  assert.equal(upgraded.verno, 5)
   assert.deepEqual(await upgraded.products.toArray(), [product])
   assert.deepEqual(await upgraded.variants.toArray(), [variant])
   assert.deepEqual(await upgraded.categories.toArray(), [category])

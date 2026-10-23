@@ -13,6 +13,7 @@ import type { ZannaDatabase } from './database'
 import { customerSnapshot } from '../domain/customer'
 import { customerSnapshotKey, validateCustomer } from '../domain/customerRules'
 import { newReceivable, validateReceivableGraph } from '../domain/creditRules'
+import { itemCost } from '../domain/reportingRules'
 
 export class DexieCheckoutRepository implements CheckoutRepository {
   private readonly db: ZannaDatabase
@@ -90,7 +91,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
   }
   async commit(incoming: CheckoutCommand): Promise<CheckoutResult> {
     const command = copyCheckoutCommand(incoming)
-    return this.safely(() => this.db.transaction('rw', [...this.masterTables(), ...this.resultTables()], async () => {
+    return this.safely(() => this.db.transaction('rw', [...this.masterTables(), ...this.resultTables(), this.db.saleItemCosts], async () => {
       const { intent, result } = await this.operationState(command.checkoutOperationId)
       if (result) { assertSameCheckoutRequest(result.sale, command); return result }
       if (!intent) throw new CheckoutError('INTENT_REQUIRED', 'Simpan intent melalui prepare sebelum execute.')
@@ -136,6 +137,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       await this.db.sales.add(sale)
       if (sale.paymentMethod === 'BON') await this.db.receivables.add(newReceivable(sale, createUuid()))
       for (const item of items) await this.db.saleItems.add(item)
+      for (const item of items) await this.db.saleItemCosts.add(itemCost(item, catalog.products.find((product) => product.id === item.productId)!))
       for (const movement of movements) await this.db.stockMovements.add(movement)
       for (const balance of running.values()) await this.db.inventoryBalances.put(balance)
       await this.db.checkoutIntents.put(committed)

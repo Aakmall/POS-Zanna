@@ -5,6 +5,7 @@ import type { Sale, SaleItem } from '../domain/sale'
 import type { CheckoutIntent } from '../domain/checkout'
 import type { Customer } from '../domain/customer'
 import type { CreditPayment, CreditPaymentIntent, Receivable } from '../domain/credit'
+import type { SaleItemCost } from '../domain/reporting'
 
 export const PRODUCT_SCHEMA_V1 = {
   products: 'id, categoryId, baseUnitId, &demoKey, updatedAt',
@@ -26,6 +27,7 @@ export class ZannaDatabase extends Dexie {
   receivables!: Table<Receivable, string>
   creditPayments!: Table<CreditPayment, string>
   creditPaymentIntents!: Table<CreditPaymentIntent, string>
+  saleItemCosts!: Table<SaleItemCost, string>
   constructor(name = 'zanna-cell-db') {
     super(name)
     this.version(1).stores(PRODUCT_SCHEMA_V1)
@@ -49,6 +51,8 @@ export class ZannaDatabase extends Dexie {
       creditPayments: 'id, &operationId, receivableId, customerId, saleId, createdAt, [receivableId+createdAt], &receiptNumber',
       creditPaymentIntents: 'operationId, status, receivableId, createdAt, &paymentId',
     })
+    // v5 captures costs only for NEW sales. Historical rows are never backfilled.
+    this.version(5).stores({ saleItemCosts: 'saleItemId, saleId' })
     this.on('versionchange', () => this.close())
   }
 }

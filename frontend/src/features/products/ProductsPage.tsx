@@ -12,6 +12,7 @@ import { ProductForm } from './ProductForm'
 import { CategoryManager } from './CategoryManager'
 import { ProductDetails } from './ProductDetails'
 import { ProductStock } from '../../components/ui/ProductStock'
+import { ProductImportDialog } from './ProductImportDialog'
 
 export function ProductsPage() {
   const { snapshot, status, repository } = useDemoStore()
@@ -19,6 +20,7 @@ export function ProductsPage() {
   const [editor, setEditor] = useState<{ product: Product | null } | null>(null)
   const [details, setDetails] = useState<Product | null>(null)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [confirm, setConfirm] = useState<Product | 'seed' | null>(null)
   const [notice, setNotice] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false)
   const needle = query.trim().toLocaleLowerCase('id')
@@ -41,7 +43,7 @@ export function ProductsPage() {
 
   return <>
     <PageHeader title="Produk" description="Master produk tersimpan di browser ini melalui IndexedDB. Checkout tunai Kasir memakai master dan stok lokal ini."
-      action={<div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={status !== 'ready'} onClick={() => setCategoriesOpen(true)}><Tags size={17} aria-hidden="true" />Kategori</Button><Button disabled={status !== 'ready'} onClick={() => setEditor({ product: null })}><Plus size={17} aria-hidden="true" />Tambah produk</Button></div>} />
+      action={<div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={status !== 'ready'} onClick={() => setImportOpen(true)}>Impor Excel</Button><Button variant="secondary" disabled={status !== 'ready'} onClick={() => setCategoriesOpen(true)}><Tags size={17} aria-hidden="true" />Kategori</Button><Button disabled={status !== 'ready'} onClick={() => setEditor({ product: null })}><Plus size={17} aria-hidden="true" />Tambah produk</Button></div>} />
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-brand/15 bg-brand-soft p-4 text-xs leading-5 text-brand"><p>Data lokal nyata · Tidak otomatis menjadi transaksi · Bukan backup permanen</p><Button variant="secondary" className="text-xs" disabled={status !== 'ready'} onClick={() => { setError(''); setConfirm('seed') }}>Isi Data Demo</Button></div>
     {notice && <p role="status" className="mb-4 rounded-xl bg-success-soft p-4 text-sm text-success">{notice}</p>}
     {status !== 'ready' ? <CatalogState /> : <>
@@ -60,6 +62,7 @@ export function ProductsPage() {
     {editor && <ProductForm product={editor.product} onClose={() => setEditor(null)} onSaved={(name) => { setNotice(`${name} tersimpan di IndexedDB. Data tetap tersedia setelah refresh pada origin yang sama.`); setEditor(null) }} />}
     {details && <ProductDetails product={details} onClose={() => setDetails(null)} />}
     {categoriesOpen && <CategoryManager onClose={() => setCategoriesOpen(false)} />}
+    {importOpen && <ProductImportDialog units={snapshot.units} onClose={() => setImportOpen(false)} onSaved={(count) => { setImportOpen(false); setNotice(`${count} produk berhasil diimpor. Data lama tetap; atur stok awal di menu Stok.`) }} />}
     {confirm && <Dialog title={confirm === 'seed' ? 'Isi Data Demo?' : `${confirm.isActive ? 'Nonaktifkan' : 'Aktifkan'} produk?`} mode="local" onClose={() => { if (!busy) setConfirm(null) }}><p className="text-sm leading-6 text-ink-muted">{confirm === 'seed' ? 'Menambahkan contoh berlabel DEMO, termasuk varian bensin dan satuan kemasan. Tidak menimpa data pengguna dan tidak menduplikasi seed yang sudah ada. Konflik SKU akan membatalkan seluruh seed.' : `${confirm.name} akan ${confirm.isActive ? 'disembunyikan dari katalog aktif' : 'ditampilkan kembali jika kategori dan varian aktif'}. Produk tidak dihapus permanen.`}</p>{error && <p role="alert" className="mt-4 text-sm text-danger">{error}</p>}<div className="mt-6 flex flex-wrap justify-end gap-3"><Button variant="secondary" onClick={() => setConfirm(null)} disabled={busy}>Batal</Button><Button onClick={() => void performConfirmed()} disabled={busy}>{busy ? 'Menyimpan…' : 'Ya, lanjutkan'}</Button></div></Dialog>}
   </>
 }

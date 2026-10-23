@@ -47,6 +47,6 @@ export function summarizeDashboard(data: DashboardData, window: DashboardWindow)
     if (status === 'OUT_OF_STOCK') outOfStock.push(row)
   }
   const order = (a: DashboardStock, b: DashboardStock) => a.name.localeCompare(b.name, 'id') || a.productId.localeCompare(b.productId)
-  return { today: days[6], days, recent: data.recent, topProducts: [...top.values()].sort((a, b) => b.revenue - a.revenue || a.key.localeCompare(b.key)).slice(0, 5),
+  return { today: days[days.length - 1], days, recent: data.recent, topProducts: [...top.values()].sort((a, b) => b.revenue - a.revenue || a.key.localeCompare(b.key)).slice(0, 5),
     lowStock: lowStock.sort(order), outOfStock: outOfStock.sort(order), uninitialized }
 }

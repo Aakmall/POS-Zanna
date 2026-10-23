@@ -4,11 +4,13 @@ import type { DashboardData, DashboardRepository, DashboardWindow } from '../dom
 import { validateSaleHeader } from '../domain/saleRules'
 import type { ZannaDatabase } from './database'
 import { DexieCheckoutRepository } from './dexieCheckoutRepository'
+import { DexieReportingRepository } from './dexieReportingRepository'
 
 export class DexieDashboardRepository implements DashboardRepository {
   private readonly db: ZannaDatabase
   private readonly checkout: DexieCheckoutRepository
   constructor(db: ZannaDatabase) { this.db = db; this.checkout = new DexieCheckoutRepository(db) }
+  get reporting() { return new DexieReportingRepository(this.db) }
   async read(window: DashboardWindow): Promise<DashboardData> {
     try {
       return await this.db.transaction('r', this.db.tables, async () => {

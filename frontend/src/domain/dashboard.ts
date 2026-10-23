@@ -1,6 +1,7 @@
 import type { CheckoutResult } from './checkout'
 import type { InventoryBalance, UnitSnapshot } from './inventory'
 import type { Product, Unit } from './product'
+import type { ReportingRepository } from './reporting'
 
 export interface DashboardDay { date: string; revenue: number; transactions: number; itemRows: number }
 export interface DashboardStock { productId: string; name: string; active: boolean; quantityBase: number; minimumStock: number | null; unit: string }
@@ -11,4 +12,4 @@ export interface DashboardSnapshot {
   topProducts: readonly DashboardTopProduct[]; lowStock: readonly DashboardStock[]; outOfStock: readonly DashboardStock[]; uninitialized: number
 }
 export interface DashboardData { period: readonly CheckoutResult[]; recent: readonly CheckoutResult[]; products: readonly Product[]; units: readonly Unit[]; balances: readonly InventoryBalance[] }
-export interface DashboardRepository { read(window: DashboardWindow): Promise<DashboardData>; subscribe(window: DashboardWindow, next: (data: DashboardData) => void, error: (cause: unknown) => void): () => void }
+export interface DashboardRepository { readonly reporting: ReportingRepository; read(window: DashboardWindow): Promise<DashboardData>; subscribe(window: DashboardWindow, next: (data: DashboardData) => void, error: (cause: unknown) => void): () => void }

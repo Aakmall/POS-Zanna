@@ -13,7 +13,7 @@ const pageDescriptions: Record<string, string> = {
   '/stok': 'Persediaan yang tertata untuk usaha sehari-hari.',
   '/penjualan': 'Riwayat transaksi tunai dan struk tersimpan di perangkat ini.',
   '/bon': 'Rincian pelanggan dan bon dalam satu tempat.',
-  '/laporan': 'Kenali irama penjualan dari data contoh.',
+  '/laporan': 'Penjualan, laba kotor dan piutang dari transaksi tersimpan.',
   '/pengaturan': 'Sesuaikan ruang kerja warung Anda.',
 }
 
@@ -56,7 +56,7 @@ export function OperationalLayout() {
   }
 
   return (
-    <DemoProvider catalogEnabled={!(location.pathname === '/bon' || location.pathname === '/dashboard' || location.pathname === '/penjualan' || location.pathname.startsWith('/penjualan/'))}>
+    <DemoProvider catalogEnabled={!(location.pathname === '/bon' || location.pathname === '/laporan' || location.pathname === '/dashboard' || location.pathname === '/penjualan' || location.pathname.startsWith('/penjualan/'))}>
       <div className={`operational-shell ${collapsed ? 'is-collapsed' : ''}`}>
         <a href="#operasional" className="skip-link">Lewati ke konten utama</a>
         <aside className="operational-sidebar">
@@ -69,7 +69,7 @@ export function OperationalLayout() {
             <div className="sidebar-demo mb-4 rounded-xl border border-white/25 p-3.5">
               <FlaskConical size={20} className="mb-2" aria-hidden="true" />
               <p className="text-xs font-semibold">Tunai &amp; Bon · IndexedDB</p>
-              <p className="mt-1.5 text-[11px] leading-5 text-sidebar-muted">Penjualan, pelanggan, cicilan dan stok tersimpan di perangkat ini. Dashboard nyata. Laporan masih DEMO.</p>
+              <p className="mt-1.5 text-[11px] leading-5 text-sidebar-muted">Penjualan, pelanggan, cicilan dan stok tersimpan di perangkat ini. Dashboard dan laporan memakai transaksi tersimpan.</p>
             </div>
             <div className="sidebar-user flex items-center gap-3 rounded-xl bg-black/10 p-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/90 text-xs font-bold text-brand" aria-hidden="true">OD</span>
@@ -102,7 +102,7 @@ export function OperationalLayout() {
           <main ref={main} id="operasional" tabIndex={-1} className="operational-main">
             <Outlet />
           </main>
-          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 5</span><span>Tunai &amp; Bon IndexedDB · Laporan DEMO</span></footer>
+          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 6</span><span>Tunai &amp; Bon · Laporan nyata</span></footer>
         </div>
 
         <nav aria-label="Navigasi cepat" className="mobile-nav fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-surface px-2 pt-2 lg:hidden">

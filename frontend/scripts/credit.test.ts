@@ -54,7 +54,7 @@ test('jatuh tempo opsional memakai tanggal kalender valid, bukan timestamp UTC',
   for (const date of [null, '2028-02-29', '2026-10-25']) assert.doesNotThrow(() => validateDueDate(date))
   for (const date of ['', '2026-02-29', '2026-11-31', '2026-10-25T00:00:00Z']) assert.throws(() => validateDueDate(date))
 })
-test('migrasi literal v3 ke v4 additive: sembilan tabel lama, CASH/fingerprint/intent tidak ditulis ulang', async () => {
+test('migrasi literal v3 ke v5 additive: sembilan tabel lama, CASH/fingerprint/intent tidak ditulis ulang', async () => {
   const legacy = new Dexie(`credit-migration-${crypto.randomUUID()}`)
   legacy.version(1).stores(PRODUCT_SCHEMA_V1)
   legacy.version(2).stores({ inventoryBalances: 'productId, updatedAt', stockMovements: 'id, productId, &operationId, [productId+createdAt], createdAt' })
@@ -65,7 +65,7 @@ test('migrasi literal v3 ke v4 additive: sembilan tabel lama, CASH/fingerprint/i
   const captured = Object.fromEntries(await Promise.all(legacy.tables.map(async (table) => [table.name, await table.toArray()])))
   legacy.close()
   const db = new ZannaDatabase(legacy.name); databases.push(db)
-  await db.open(); assert.equal(db.verno, 4); assert.equal(db.tables.length, 13)
+  await db.open(); assert.equal(db.verno, 5); assert.equal(db.tables.length, 14)
   for (const [name, rows] of Object.entries(captured)) assert.deepEqual(await db.table(name).toArray(), rows)
   for (const name of ['customers', 'receivables', 'creditPayments', 'creditPaymentIntents']) assert.equal(await db.table(name).count(), 0)
   assert.equal(db.receivables.schema.idxByName.saleId.unique, true)

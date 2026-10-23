@@ -1,6 +1,6 @@
 # POS-Zanna — Project Backlog
 
-Pembaruan 23 Oktober 2026, setelah Fase 5. Daftar ini berisi optimisasi/nonkritis yang ditunda agar roadmap inti berjalan. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai.
+Pembaruan 23 Oktober 2026, setelah Fase 6. Daftar ini berisi optimisasi/nonkritis dan keputusan penundaan yang eksplisit. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai. Autentikasi ditunda oleh pengguna: aplikasi hanya development/testing, belum operasional multiuser.
 
 | ID | Kategori/prioritas | Temuan aktual | Tindak lanjut ketika waktunya tepat |
 | --- | --- | --- | --- |
@@ -42,4 +42,18 @@ Fase 5 membuat pelanggan/Bon/cicilan nyata secara lokal. Omzet Dashboard mencaku
 
 Langkah 4.4 sudah mengintegrasikan UI tunai/receipt/recovery aktif per tab, menjaga UUID saat uncertain dan freeze/clear cart berdasarkan kepemilikan. Pengguna melaporkan checkout bensin dan produk lain telah diuji manual. Langkah 4.5 menambahkan [riwayat dan struk hanya-baca](PHASE-4-5-SALES-HISTORY.md). Pengujian visual/native browser/tablet 4.5 masih pending oleh pengguna. Tidak ada kelanjutan fase berikutnya tanpa persetujuan.
 
-Backup/restore, autentikasi owner, pembatalan/retur, laporan HPP, PWA, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. IndexedDB lokal belum backup permanen. Checkout memakai pointer per tab dan jurnal durable; pembayaran piutang memakai jurnal per operationId dan intent persisten. Riwayat/struk/bukti dapat dibuka dari data tersimpan. Dashboard nyata/live, Laporan DEMO. Pengujian native fitur baru tetap pending pengguna. Fase 6 belum dimulai.
+Backup/restore, autentikasi owner, pembatalan/retur, PWA, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. IndexedDB lokal belum backup permanen. Dashboard/Laporan/HPP nyata pada Fase 6; modal lama tanpa snapshot tetap parsial. Pengujian Fase 6 native menunggu pengguna. Fase 7 belum dimulai.
+
+## Fase 6 — tindak lanjut dan batas yang disepakati
+
+| ID | Kategori/prioritas | Temuan aktual | Tindak lanjut |
+| --- | --- | --- | --- |
+| BL-020 | Keamanan, ditunda eksplisit pengguna | Tidak ada PIN/login/role/guard OWNER. Laba/modal dan impor terbuka untuk development/testing | Fase Authentication & Authorization tersendiri; izin rancangan reports.profit.view, products.import.confirm, products.cost.view wajib ditegakkan pada service/API/ekspor; belum siap operasional multiuser |
+| BL-021 | Performa laporan, nonblocking | Query memvalidasi graph transaksi/Bon dan daftar belum dipaginasi; custom dibatasi 366 hari | Ukur dengan data realistis sebelum indeks/pagination/worker; jangan memperlemah integritas |
+| BL-022 | HPP historis, batas data | Transaksi sebelum snapshot v5 tidak mempunyai modal sah; laba parsial | Jangan backfill dari harga master terbaru. Jika diperlukan koreksi historis, tetapkan sumber bukti dan kebijakan audit terpisah |
+| BL-023 | UX impor, kebutuhan masa depan | Impor create-only, 500 baris/2 MB/satu lembar; kategori/satuan harus tersedia; tidak ada update master atau impor stok | Evaluasi update berbasis identitas dan jurnal durable impor bila dibutuhkan. Respons commit yang tidak terlihat diperiksa lewat daftar produk, bukan retry buta |
+| BL-024 | Ekspor, nonblocking | CSV memakai koma/UTF-8; sebagian Excel perlu memilih delimiter saat membuka. Piutang mengekspor seluruh tagihan, bukan filter pencarian/status lokal | Pertimbangkan ekspor XLSX laporan atau penyelarasan filter ekspor lokal jika pengguna membutuhkannya; ekspor laporan bukan backup |
+| BL-025 | Validasi native Fase 6, pending pengguna | Tes otomatis lulus; tampilan/file picker/unduhan/keyboard tablet belum diuji agen | Ikuti PHASE-6-MANUAL-TEST-GUIDE, hanya fitur baru/terdampak |
+| BL-026 | Informasi lama, minor | ProductDetails masih memiliki teks mode variable lama yang menyebut belum tersedia di Kasir | Rapikan label pada tahap kosmetik terpisah; logika variable tidak diubah Fase 6 |
+
+Peringatan bundle utama >500 kB (BL-001) tetap terlihat; Excel memakai dynamic import. Warning React act pada harness CreditPage/DemoProvider dapat muncul di suite penuh (BL-015); jangan disembunyikan. Hasil dan ukuran build aktual: [validasi Fase 6](PHASE-6-VALIDATION-REPORT.md).
