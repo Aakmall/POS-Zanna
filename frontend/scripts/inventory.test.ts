@@ -208,7 +208,7 @@ test('saldo/ledger tetap ada setelah reopen dan katalog membatasi stok bersama v
     assert.equal((await repo.getBalances())[0].quantityBase, 3000)
   } finally { reopened.close() }
 })
-test('migrasi v1 → v3 mempertahankan seluruh master/barcode/skala dan tidak seed stok nol', async () => {
+test('migrasi v1 → v4 mempertahankan seluruh master/barcode/skala dan tidak seed stok nol', async () => {
   const name = `migration-test-${crypto.randomUUID()}`
   const old = new Dexie(name)
   old.version(1).stores(PRODUCT_SCHEMA_V1)
@@ -221,7 +221,7 @@ test('migrasi v1 → v3 mempertahankan seluruh master/barcode/skala dan tidak se
   old.close()
   const upgraded = new ZannaDatabase(name); databases.push(upgraded)
   await upgraded.open()
-  assert.equal(upgraded.verno, 3)
+  assert.equal(upgraded.verno, 4)
   assert.deepEqual(await upgraded.products.toArray(), [product])
   assert.deepEqual(await upgraded.variants.toArray(), [variant])
   assert.deepEqual(await upgraded.categories.toArray(), [category])

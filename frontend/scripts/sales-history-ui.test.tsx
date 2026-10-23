@@ -12,7 +12,7 @@ import type { DemoStore } from '../src/app/demoContext'
 
 process.env.TZ = 'Asia/Singapore'
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' }), browser = dom.window
-for (const key of ['window', 'document', 'HTMLElement', 'HTMLDialogElement', 'HTMLInputElement', 'Event', 'MouseEvent'] as const) Object.defineProperty(globalThis, key, { value: key === 'window' ? browser : browser[key], configurable: true })
+for (const key of ['window', 'document', 'HTMLElement', 'HTMLDialogElement', 'HTMLInputElement', 'FormData', 'Event', 'MouseEvent'] as const) Object.defineProperty(globalThis, key, { value: key === 'window' ? browser : browser[key], configurable: true })
 Object.defineProperty(globalThis, 'navigator', { value: browser.navigator, configurable: true })
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
 browser.scrollTo = () => {}

@@ -1,23 +1,15 @@
-﻿import { useState } from 'react'
+import type { Customer } from '../../domain/customer'
+import type { Receivable } from '../../domain/credit'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
-import { displayDate, money, parseWholeAmount } from '../../lib/format'
-import type { DemoCustomer } from '../../types/pos'
+import { money } from '../../lib/format'
 
-export function CustomerDialog({ customer, onClose, onPay }: { customer: DemoCustomer; onClose: () => void; onPay: (amount: number) => void }) {
-  const [amount, setAmount] = useState('')
-  const [error, setError] = useState('')
-  const total = customer.entries.reduce((sum, entry) => sum + entry.amount, 0)
-  const balance = total - customer.paid
-  return <Dialog title={`Bon · ${customer.name}`} onClose={onClose}>
-    <div className="rounded-xl bg-surface-muted p-5"><p className="text-xs text-ink-muted">Sisa bon contoh</p><p className="mt-2 text-3xl font-bold text-ink">{money(balance)}</p><p className="mt-2 text-xs text-ink-muted">Sudah dibayar contoh: {money(customer.paid)}</p></div>
-    <h3 className="mt-6 mb-3 text-sm font-semibold">Rincian utang DEMO</h3><ul className="divide-y divide-line">{customer.entries.map((entry) => <li key={entry.id} className="py-3"><div className="flex justify-between gap-3 text-xs"><span className="text-ink-muted">{displayDate(entry.date)}</span><strong>{money(entry.amount)}</strong></div><p className="mt-2 text-sm">{entry.description}</p></li>)}</ul>
-    {balance > 0 ? <form className="mt-5 space-y-4 border-t border-line pt-5" onSubmit={(event) => {
-      event.preventDefault()
-      const payment = parseWholeAmount(amount)
-      if (payment === null || payment <= 0 || payment > balance) { setError('Isi cicilan rupiah bulat lebih dari nol dan tidak melebihi sisa bon.'); return }
-      onPay(payment)
-    }}><label className="block"><span className="field-label">Simulasi cicilan tunai (Rp)</span><input className="field" inputMode="numeric" placeholder="Contoh: 25000" value={amount} onChange={(event) => setAmount(event.target.value)} required /></label>{error && <p role="alert" className="text-sm text-danger">{error}</p>}<p className="text-xs leading-5 text-ink-muted">Hanya mengurangi saldo contoh di halaman ini, tanpa menerima uang atau menyimpan pembayaran nyata.</p><Button type="submit" className="w-full">Simulasikan pembayaran cicilan</Button></form> : <p role="status" className="mt-5 rounded-xl bg-success-soft p-4 text-sm text-success">Bon contoh ini sudah lunas.</p>}
+export function CustomerDialog({ customer, receivables, onClose, onEdit, onDetail }: { customer: Customer; receivables: readonly Receivable[]; onClose: () => void; onEdit: () => void; onDetail: (id: string) => void }) {
+  const debts = receivables.filter((entry) => entry.customerId === customer.id)
+  return <Dialog title={customer.name} mode="local" onClose={onClose}>
+    <dl className="space-y-3 text-sm"><div><dt className="text-xs text-ink-muted">Status</dt><dd>{customer.isActive ? 'Aktif' : 'Diarsipkan · tidak bisa membuat Bon baru'}</dd></div><div><dt className="text-xs text-ink-muted">Telepon</dt><dd>{customer.phone || 'Belum diisi'}</dd></div><div><dt className="text-xs text-ink-muted">Alamat</dt><dd className="whitespace-pre-wrap">{customer.address || 'Belum diisi'}</dd></div><div><dt className="text-xs text-ink-muted">Catatan</dt><dd className="whitespace-pre-wrap">{customer.note || 'Belum diisi'}</dd></div><div><dt className="text-xs text-ink-muted">Sisa Utang seluruh tagihan</dt><dd className="mt-1 text-2xl font-bold text-brand">{money(debts.reduce((sum, entry) => sum + entry.balance, 0))}</dd></div></dl>
+    <Button variant="secondary" className="mt-5" onClick={onEdit}>Edit / arsipkan pelanggan</Button>
+    <h3 className="mt-6 text-sm font-semibold">Riwayat tagihan</h3>
+    {!debts.length ? <p className="mt-3 text-sm text-ink-muted">Pelanggan ini belum mempunyai Bon.</p> : <ul className="mt-2 divide-y divide-line">{debts.map((debt) => <li key={debt.id} className="space-y-2 py-3"><p className="break-all text-xs">{debt.receiptNumber}</p><p className="text-sm">Sisa Utang {money(debt.balance)} · {debt.status === 'PAID' ? 'Lunas' : debt.status === 'PARTIAL' ? 'Sebagian dibayar' : 'Belum dibayar'}</p><Button variant="secondary" onClick={() => onDetail(debt.id)}>Lihat tagihan</Button></li>)}</ul>}
   </Dialog>
 }
-

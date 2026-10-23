@@ -116,6 +116,6 @@ test('DOM form produk: edit lama tidak menulis diam-diam, peringatan nonblocking
     assert.deepEqual(await allData(), oldInvalid) // Even explicit draft edits wait for Save.
     await act(async () => { submit() }); await wait(() => savedName === 'Solar langsung')
     assert.equal((await db.variants.get(solarVariant.id))!.quantityInBaseUnit, 1000)
-    assert.equal(db.verno, 3)
+    assert.equal(db.verno, 4)
   } finally { await act(async () => root.unmount()); await db.delete(); dom.window.close() }
 })

@@ -29,7 +29,7 @@ test('Dashboard kosong: tujuh hari nol, tanpa angka DEMO atau write', async () =
     const result = await f.dashboard.read(now), before = await historySnapshot(f.db)
     assert.deepEqual(result.today, { date: '2026-10-22', revenue: 0, transactions: 0, itemRows: 0 })
     assert.equal(result.days.length, 7); assert.equal(result.topProducts.length, 0); assert.equal(result.recent.length, 0)
-    assert.deepEqual(await historySnapshot(f.db), before); assert.equal(f.db.verno, 3)
+    assert.deepEqual(await historySnapshot(f.db), before); assert.equal(f.db.verno, 4)
   } finally { await f.db.delete() }
 })
 test('Dashboard batas hari lokal, tujuh hari termasuk nol, recent dapat lebih tua dari periode', async () => {

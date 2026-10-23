@@ -39,17 +39,17 @@ async function legacyV2() {
 }
 const constraint = (error: unknown) => error instanceof Error && error.name === 'ConstraintError'
 
-test('migrasi v2 → v3 mempertahankan seluruh master/policy/barcode/saldo/ledger tanpa backfill', async () => {
+test('migrasi v2 → v4 mempertahankan seluruh master/policy/barcode/saldo/ledger tanpa backfill', async () => {
   const old = await legacyV2(), db = new ZannaDatabase(old.name)
   try {
     await db.open()
-    assert.equal(db.verno, 3)
+    assert.equal(db.verno, 4)
     for (const [index, store] of oldStores.entries()) assert.deepEqual(await db.table(store).toArray(), old.captured[index], store)
     assert.equal((await db.variants.toArray())[0].barcode?.startsWith('00'), true)
     assert.deepEqual((await db.inventoryBalances.toArray())[0], old.balance)
     assert.equal((await db.stockMovements.toArray()).every((record) => record.saleItemId === undefined), true)
     assert.equal(await db.sales.count(), 0); assert.equal(await db.saleItems.count(), 0); assert.equal(await db.checkoutIntents.count(), 0)
-    assert.equal(db.tables.length, 9)
+    assert.equal(db.tables.length, 13)
     db.close(); await db.open()
     for (const [index, store] of oldStores.entries()) assert.deepEqual(await db.table(store).toArray(), old.captured[index])
     assert.equal(await db.sales.count(), 0)

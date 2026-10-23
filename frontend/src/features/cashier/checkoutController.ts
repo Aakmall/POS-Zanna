@@ -4,16 +4,18 @@ import { copyCheckoutCommand } from '../../domain/checkoutRequest'
 import { createUuid } from '../../domain/id'
 import type { CheckoutService } from '../../services/checkoutOperations'
 import type { CheckoutSession, CheckoutSessionStore } from './checkoutSession'
+import type { CustomerSnapshot } from '../../domain/customer'
 
 export type CashStatus = 'editing' | 'preparing' | 'processing' | 'success' | 'rejected' | 'uncertain'
 interface RecoverableCheckout { checkoutOperationId: string; command: CheckoutCommand }
 export interface CashState {
+  paymentMethod: 'CASH' | 'BON'
   status: CashStatus; open: boolean; busy: boolean; ready: boolean
   quote: CheckoutQuote | null; command: CheckoutCommand | null; result: CheckoutResult | null
   unresolved: readonly RecoverableCheckout[]; message: string; code: string
 }
 export type CheckoutClient = Pick<CheckoutService, 'preview' | 'prepare' | 'execute' | 'getResult' | 'listUnresolved' | 'cancel'>
-const initial: CashState = { status: 'editing', open: false, busy: false, ready: false, quote: null, command: null, result: null, unresolved: [], message: '', code: '' }
+const initial: CashState = { paymentMethod: 'CASH', status: 'editing', open: false, busy: false, ready: false, quote: null, command: null, result: null, unresolved: [], message: '', code: '' }
 
 // External store owned by the provider: synchronous guards also cover clicks before React renders.
 export class CheckoutController {
@@ -48,7 +50,7 @@ export class CheckoutController {
     }
     if (this.state.command?.checkoutOperationId === result.sale.checkoutOperationId) this.clearOwnedCart?.()
     this.clearOwnedCart = null
-    this.patch({ status: 'success', busy: false, open: true, ready: true, result, command: null, quote: null, message: '', code: '',
+    this.patch({ paymentMethod: result.sale.paymentMethod, status: 'success', busy: false, open: true, ready: true, result, command: null, quote: null, message: '', code: '',
       unresolved: this.state.unresolved.filter((intent) => intent.checkoutOperationId !== result.sale.checkoutOperationId) })
   }
   async boot() {
@@ -74,16 +76,16 @@ export class CheckoutController {
       this.patch({ unresolved, ready: true })
       if (result) { this.success(result); return }
       if (command) {
-        this.patch({ command, quote: null, status: 'rejected', open: true, busy: false, code: '',
+        this.patch({ paymentMethod: command.paymentMethod, command, quote: null, status: 'rejected', open: true, busy: false, code: '',
           message: 'Belum ada penjualan tersimpan untuk ID ini. Lanjutkan request yang sama atau batalkan secara eksplisit sebelum mengubah belanja.' })
       } else this.patch({ busy: false, status: 'editing', message: '', code: '' })
     } catch (cause) { this.fail(cause, true) }
   }
-  async begin(selections: readonly CheckoutSelection[], clearOwnedCart: () => void) {
+  async begin(selections: readonly CheckoutSelection[], clearOwnedCart: () => void, paymentMethod: 'CASH' | 'BON' = 'CASH') {
     if (this.locked || this.state.open) return
     this.selections = selections.map((line) => ({ ...line }))
     this.clearOwnedCart = clearOwnedCart
-    this.patch({ open: true, busy: true, status: 'editing', quote: null, result: null, message: '', code: '' })
+    this.patch({ paymentMethod, open: true, busy: true, status: 'editing', quote: null, result: null, message: '', code: '' })
     try { this.patch({ quote: await this.client.preview(this.selections), busy: false }) }
     catch (cause) { this.fail(cause) }
   }
@@ -94,12 +96,23 @@ export class CheckoutController {
     catch (cause) { this.fail(cause) }
   }
   async confirm(cashReceived: number) {
-    if (this.state.busy || this.state.command || !this.state.quote || this.state.status !== 'editing') return
+    if (this.state.paymentMethod !== 'CASH' || this.state.busy || this.state.command || !this.state.quote || this.state.status !== 'editing') return
     let command: CheckoutCommand
     try {
       calculateChange(cashReceived, this.state.quote.total)
       command = copyCheckoutCommand({ payloadVersion: 1, checkoutOperationId: createUuid(), paymentMethod: 'CASH',
         lines: this.state.quote.lines, expectedTotal: this.state.quote.total, cashReceived })
+    } catch (cause) { this.fail(cause); return }
+    this.patch({ command, status: 'preparing', busy: true })
+    try { this.save(command) } catch (cause) { this.fail(cause); return }
+    await this.run(command)
+  }
+  async confirmBon(customer: CustomerSnapshot, dueDate: string | null) {
+    if (this.state.paymentMethod !== 'BON' || this.state.busy || this.state.command || !this.state.quote || this.state.status !== 'editing') return
+    let command: CheckoutCommand
+    try {
+      command = copyCheckoutCommand({ payloadVersion: 2, paymentMethod: 'BON', checkoutOperationId: createUuid(), lines: this.state.quote.lines,
+        expectedTotal: this.state.quote.total, cashReceived: 0, customer, dueDate })
     } catch (cause) { this.fail(cause); return }
     this.patch({ command, status: 'preparing', busy: true })
     try { this.save(command) } catch (cause) { this.fail(cause); return }
@@ -122,7 +135,7 @@ export class CheckoutController {
     if (this.locked || this.state.open) return
     this.clearOwnedCart = null // Recovery must NEVER clear a new in-memory cart.
     const command = copyCheckoutCommand(intent.command)
-    this.patch({ command, open: true, quote: null, result: null, status: 'rejected', message: 'Intent belum selesai. Periksa hasil sebelum melanjutkan.', code: '' })
+    this.patch({ paymentMethod: command.paymentMethod, command, open: true, quote: null, result: null, status: 'rejected', message: 'Intent belum selesai. Periksa hasil sebelum melanjutkan.', code: '' })
     try { this.save(command) } catch (cause) { this.fail(cause); return }
     await this.check()
   }

@@ -1,10 +1,10 @@
 # POS-Zanna — Project Backlog
 
-Pembaruan 22 Oktober 2026, setelah finalisasi gabungan 4.6 + 4.7. Daftar ini berisi optimisasi/nonkritis yang ditunda agar roadmap inti berjalan. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai.
+Pembaruan 23 Oktober 2026, setelah Fase 5. Daftar ini berisi optimisasi/nonkritis yang ditunda agar roadmap inti berjalan. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai.
 
 | ID | Kategori/prioritas | Temuan aktual | Tindak lanjut ketika waktunya tepat |
 | --- | --- | --- | --- |
-| BL-001 | Performa, nonblocking | Vite memperingatkan chunk utama 558,59 kB (>500 kB), gzip 167,85 kB pada final Fase 4; setelah UX satuan 565,03 kB, gzip 169,81 kB; build tetap lulus | Optimasi bundle sengaja ditunda sesuai arahan finalisasi; jangan menaikkan threshold untuk menyembunyikan warning |
+| BL-001 | Performa, nonblocking | Vite memperingatkan chunk utama 558,59 kB pada final Fase 4; setelah UX satuan 565,03 kB; final Fase 5 606,28 kB (>500 kB), gzip 179,24 kB; build tetap lulus | Optimasi bundle sengaja ditunda sesuai arahan finalisasi; jangan menaikkan threshold untuk menyembunyikan warning |
 | BL-002 | Performa data, nonblocking | Riwayat per produk dibaca seluruhnya lalu ditampilkan bertahap 50 baris | Evaluasi pagination memakai indeks productId+createdAt pada data besar, pertahankan snapshot dan urutan audit |
 | BL-003 | Performa checkout, nonblocking | context membaca seluruh master/balance dalam transaksi; listUnresolved memeriksa tiap PREPARED | Ukur dengan katalog/intent realistis; pertimbangkan bulkGet/query terarah tanpa memindahkan validasi keluar transaksi |
 | BL-004 | UX audit, enhancement | SALE memiliki saleId/saleItemId dan reason nomor struk; detail ledger UI belum menampilkan semua referensi penjualan | Tambahkan akses audit/receipt saat scope UI penjualan disetujui; tidak mengedit histori |
@@ -23,12 +23,23 @@ Pembaruan 22 Oktober 2026, setelah finalisasi gabungan 4.6 + 4.7. Daftar ini ber
 | BL-012 | Bantuan input, minor | Peringatan nama mengenali ukuran eksplisit berat/volume dan padanan baku; nama multipack/rentang/singkatan lain dapat ambigu | Evaluasi contoh nama pengguna sebelum memperluas pengenalan. Tetap nonblocking, jangan menjadikan nama sumber konversi atau mengubah isi otomatis |
 | BL-013 | UX satuan, minor | Master saat ini menyediakan 10 satuan; form memakai izin kemasan dan satuan yang sudah ada, tanpa membuat master otomatis | Jika ada kebutuhan satuan baru, rancang pengelolaan master dan persetujuan eksplisit pada scope terpisah; jangan menebak kapasitas dari nama |
 | BL-014 | Validasi perangkat, pending pengguna | Form baru lulus tes DOM otomatis; tampilan native, keyboard desimal, gulir dialog tablet dan pembaca layar belum diuji manual | Jalankan checklist pada panduan satuan produk; tidak menganggap jsdom sebagai bukti responsivitas visual |
-| BL-015 | Harness tes, minor | Suite penuh lulus 201/201, tetapi harness DOM riwayat mencetak TypeError FormData Node/jsdom; tes DOM lama juga sesekali mencetak warning React act | Selaraskan globals FormData dengan window jsdom dan batas act pada harness, lalu pastikan diagnostic bersih; tidak mengubah runtime aplikasi atau menganggap diagnostic sebagai bukti kegagalan browser |
+| BL-015 | Harness tes, diperbaiki sebagian pada Fase 5 | Globals FormData harness riwayat kini memakai jsdom; TypeError FormData tidak muncul. Final 260/260 lulus; suite Bon 59/59 bersih. Suite penuh masih sesekali mencetak warning act dari harness DemoProvider lama | Lengkapi batas act/settling pada harness lama jika diperbaiki; jangan menyembunyikan diagnostic atau mengubah runtime aplikasi demi tes |
 
 Panduan dan audit perubahan: [Satuan dan varian produk](USER-GUIDE-PRODUCT-UNITS.md). Pengaturan baru tidak memperbaiki transaksi/saldo lama otomatis; harga per satuan jual perlu diperiksa pengguna setelah mengganti cara menjual.
+
+## Finalisasi Fase 5 — nonkritis
+
+| ID | Kategori/prioritas | Temuan aktual | Tindak lanjut |
+| --- | --- | --- | --- |
+| BL-016 | Performa piutang, nonblocking | Overview memvalidasi seluruh graph tagihan/pembayaran; pelanggan/tagihan belum dipaginasi. Scope transaksi pembayaran luas untuk memastikan snapshot konsisten | Ukur dengan data realistis, rancang pagination/query terarah tanpa memperlemah integritas atau memindahkan validasi saldo keluar transaksi |
+| BL-017 | UX piutang, minor | Detail tagihan dibaca on-demand; tutup/buka ulang untuk perubahan tab lain. Filter daftar berada di state halaman | Evaluasi live detail dan persist filter bila dibutuhkan; expectedBalance tetap melindungi konfirmasi usang |
+| BL-018 | UX pembayaran, kebutuhan masa depan | Pembayaran per tagihan dengan nominal tepat; belum ada bayar gabungan, uang muka checkout, bunga/denda, koreksi/refund atau edit bukti | Tetapkan kebijakan audit pada fase tersendiri sebelum implementasi; jangan mengubah event pembayaran lama |
+| BL-019 | Validasi native, pending pengguna | Bon/cicilan/recovery lulus pengujian otomatis; tampilan/fokus/keyboard/upgrade pada tablet operasional belum diuji manual | Jalankan checklist PHASE-5-FINAL-REPORT.md sebelum menutup validasi pengguna dan commit/push |
+
+Fase 5 membuat pelanggan/Bon/cicilan nyata secara lokal. Omzet Dashboard mencakup CASH + BON; penerimaan kas terpisah belum menjadi metrik Dashboard. Dokumentasi: [PHASE-5-FINAL-REPORT.md](PHASE-5-FINAL-REPORT.md).
 
 ## Roadmap terpisah, belum diimplementasikan
 
 Langkah 4.4 sudah mengintegrasikan UI tunai/receipt/recovery aktif per tab, menjaga UUID saat uncertain dan freeze/clear cart berdasarkan kepemilikan. Pengguna melaporkan checkout bensin dan produk lain telah diuji manual. Langkah 4.5 menambahkan [riwayat dan struk hanya-baca](PHASE-4-5-SALES-HISTORY.md). Pengujian visual/native browser/tablet 4.5 masih pending oleh pengguna. Tidak ada kelanjutan fase berikutnya tanpa persetujuan.
 
-Backup/restore, autentikasi owner, pembatalan/retur, laporan HPP, PWA, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. IndexedDB lokal belum menjadi backup permanen. Jurnal UI tetap memakai sessionStorage per tab + localStorage per operasi/last receipt untuk checkout. Riwayat membaca Sale melalui service dan dapat membuka struk lama walaupun pointer checkout tidak tersedia. Dashboard kini nyata/live, halaman Laporan tetap DEMO. Lihat [laporan final](PHASE-4-FINAL-REPORT.md). Pengujian native Dashboard baru masih pending; Fase 5 belum diimplementasikan.
+Backup/restore, autentikasi owner, pembatalan/retur, laporan HPP, PWA, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. IndexedDB lokal belum backup permanen. Checkout memakai pointer per tab dan jurnal durable; pembayaran piutang memakai jurnal per operationId dan intent persisten. Riwayat/struk/bukti dapat dibuka dari data tersimpan. Dashboard nyata/live, Laporan DEMO. Pengujian native fitur baru tetap pending pengguna. Fase 6 belum dimulai.

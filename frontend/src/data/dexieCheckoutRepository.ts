@@ -10,12 +10,15 @@ import { PRICING_POLICY, type Sale, type SaleItem } from '../domain/sale'
 import type { InventoryBalance, SaleStockMovement } from '../domain/inventory'
 import { createUuid } from '../domain/id'
 import type { ZannaDatabase } from './database'
+import { customerSnapshot } from '../domain/customer'
+import { customerSnapshotKey, validateCustomer } from '../domain/customerRules'
+import { newReceivable, validateReceivableGraph } from '../domain/creditRules'
 
 export class DexieCheckoutRepository implements CheckoutRepository {
   private readonly db: ZannaDatabase
   constructor(db: ZannaDatabase) { this.db = db }
-  private masterTables() { return [this.db.products, this.db.categories, this.db.units, this.db.variants, this.db.inventoryBalances] }
-  private resultTables() { return [this.db.sales, this.db.saleItems, this.db.checkoutIntents, this.db.stockMovements] }
+  private masterTables() { return [this.db.products, this.db.categories, this.db.units, this.db.variants, this.db.inventoryBalances, this.db.customers] }
+  private resultTables() { return [this.db.sales, this.db.saleItems, this.db.checkoutIntents, this.db.stockMovements, this.db.receivables, this.db.creditPayments, this.db.creditPaymentIntents] }
   private async safely<T>(operation: () => Promise<T>): Promise<T> {
     try { return await operation() }
     catch (cause) {
@@ -42,6 +45,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
     }
     if (!sale) {
       if (intent?.status === 'COMMITTED') throw integrityError(new Error('Intent COMMITTED tidak memiliki Sale.'))
+      if (await this.db.receivables.where('checkoutOperationId').equals(id).first()) throw integrityError(new Error('Tagihan tidak memiliki Sale.'))
       return { intent, result: null }
     }
     if (!intent) throw integrityError(new Error('Sale tidak memiliki intent.'))
@@ -49,7 +53,17 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       this.db.saleItems.where('saleId').equals(sale.id).toArray(), this.db.stockMovements.where('saleId').equals(sale.id).toArray(),
     ])
     items.sort((a, b) => a.position - b.position)
-    return { intent, result: validateStoredCheckout(intent, sale, items, movements) }
+    const result = validateStoredCheckout(intent, sale, items, movements)
+    const receivable = await this.db.receivables.where('saleId').equals(sale.id).first()
+    try {
+      if (sale.paymentMethod === 'BON') {
+        if (!receivable) throw new Error('Penjualan Bon tanpa tagihan.')
+        const payments = await this.db.creditPayments.where('receivableId').equals(receivable.id).toArray()
+        const paymentIntents = await this.db.creditPaymentIntents.where('receivableId').equals(receivable.id).toArray()
+        validateReceivableGraph(receivable, sale, payments, paymentIntents)
+      } else if (receivable) throw new Error('Penjualan tunai mempunyai tagihan Bon.')
+    } catch (cause) { throw integrityError(cause) }
+    return { intent, result }
   }
   async preview(incoming: readonly CheckoutSelection[]): Promise<CheckoutQuote> {
     const selections = copyCheckoutSelections(incoming)
@@ -84,6 +98,12 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       if (intent.status === 'CANCELLED') throw new CheckoutError('INTENT_CANCELLED', 'Intent sudah dibatalkan dan tidak dapat dieksekusi.')
       const { catalog, balances } = await this.context()
       const quote = validateCheckoutAgainstSnapshot(command, catalog, balances)
+      if (command.paymentMethod === 'BON') {
+        const customer = await this.db.customers.get(command.customer.id)
+        if (!customer || !customer.isActive) throw new CheckoutError('CUSTOMER_INACTIVE', 'Pilih pelanggan aktif sebelum mencatat Bon.')
+        try { validateCustomer(customer) } catch (cause) { throw integrityError(cause) }
+        if (customerSnapshotKey(customerSnapshot(customer)) !== customerSnapshotKey(command.customer)) throw new CheckoutError('CUSTOMER_CHANGED', 'Data pelanggan berubah. Tinjau ulang pelanggan dan konfirmasi Bon.')
+      }
       const relevant = balances.filter((balance) => quote.stockRequirements.some((entry) => entry.productId === balance.productId))
       let timestamp = Math.max(Date.now(), Date.parse(intent.createdAt))
       for (const balance of relevant) {
@@ -93,8 +113,9 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       }
       const createdAt = new Date(timestamp).toISOString(), saleId = createUuid()
       const sale: Sale = { id: saleId, receiptNumber: formatReceiptNumber(saleId, createdAt), checkoutOperationId: command.checkoutOperationId,
-        requestFingerprint: intent.requestFingerprint, createdAt, status: 'COMPLETED', paymentMethod: 'CASH', subtotal: quote.subtotal,
-        total: quote.total, cashReceived: command.cashReceived, changeAmount: calculateChange(command.cashReceived, quote.total),
+        requestFingerprint: intent.requestFingerprint, createdAt, status: 'COMPLETED', paymentMethod: command.paymentMethod, subtotal: quote.subtotal,
+        total: quote.total, cashReceived: command.cashReceived, changeAmount: command.paymentMethod === 'CASH' ? calculateChange(command.cashReceived, quote.total) : 0,
+        ...(command.paymentMethod === 'BON' ? { customerSnapshot: { ...command.customer }, dueDate: command.dueDate } : {}),
         operatorId: null, pricingPolicy: PRICING_POLICY }
       const items: SaleItem[] = quote.items.map((item) => ({ ...item, id: createUuid(), saleId }))
       validateSale(sale, items)
@@ -113,6 +134,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       const committed: CheckoutIntent = { ...intent, status: 'COMMITTED', saleId }
       validateStoredCheckout(committed, sale, items, movements)
       await this.db.sales.add(sale)
+      if (sale.paymentMethod === 'BON') await this.db.receivables.add(newReceivable(sale, createUuid()))
       for (const item of items) await this.db.saleItems.add(item)
       for (const movement of movements) await this.db.stockMovements.add(movement)
       for (const balance of running.values()) await this.db.inventoryBalances.put(balance)

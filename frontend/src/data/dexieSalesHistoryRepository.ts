@@ -34,7 +34,7 @@ export class DexieSalesHistoryRepository implements SalesHistoryRepository {
     }))
   }
   async getDetail(saleId: string) {
-    return this.read(() => this.db.transaction('r', [this.db.sales, this.db.saleItems, this.db.checkoutIntents, this.db.stockMovements], async () => {
+    return this.read(() => this.db.transaction('r', this.db.tables, async () => {
       const sale = await this.db.sales.get(saleId)
       if (!sale) {
         const related = await this.db.checkoutIntents.where('saleId').equals(saleId).first()

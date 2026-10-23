@@ -5,6 +5,7 @@ import { assertCheckoutQuantity, assertMoney, calculateChange, calculateLineTota
 import { assertRecord, assertText, assertTimestamp, assertUnitSnapshot, assertUuid, unitSnapshotKey } from './checkoutValidation'
 import { convertInventoryQuantity, MAX_STOCK_BASE } from './inventoryRules'
 import { validateConversion } from './validation'
+import { validateCustomerSnapshot, validateDueDate } from './customerRules'
 
 export function formatReceiptNumber(saleId: string, createdAt: string): string {
   assertUuid(saleId, 'ID penjualan'); assertTimestamp(createdAt)
@@ -38,12 +39,19 @@ export function validateSaleItem(value: unknown): asserts value is SaleItem {
 export function validateSaleHeader(value: unknown): asserts value is Sale {
   assertRecord(value, 'Penjualan')
   assertUuid(value.id, 'ID penjualan'); assertUuid(value.checkoutOperationId, 'ID operasi checkout'); assertTimestamp(value.createdAt)
-  if (value.status !== 'COMPLETED' || value.paymentMethod !== 'CASH' || value.pricingPolicy !== PRICING_POLICY) throw new CheckoutError('INVALID_REQUEST', 'Status, metode, atau pricing policy penjualan tidak didukung.')
+  if (value.status !== 'COMPLETED' || (value.paymentMethod !== 'CASH' && value.paymentMethod !== 'BON') || value.pricingPolicy !== PRICING_POLICY) throw new CheckoutError('INVALID_REQUEST', 'Status, metode, atau pricing policy penjualan tidak didukung.')
   if (value.receiptNumber !== formatReceiptNumber(value.id, value.createdAt)) throw new CheckoutError('INVALID_REQUEST', 'Nomor struk tidak sesuai identitas/tanggal UTC penjualan.')
   assertText(value.requestFingerprint, 'Fingerprint penjualan', 100000)
   if (value.operatorId !== null) assertUuid(value.operatorId, 'ID operator')
   assertMoney(value.subtotal, 'Subtotal'); assertMoney(value.total, 'Total'); assertMoney(value.cashReceived, 'Uang diterima'); assertMoney(value.changeAmount, 'Kembalian')
-  if (value.subtotal !== value.total || value.changeAmount !== calculateChange(value.cashReceived, value.total)) throw new CheckoutError('INVALID_REQUEST', 'Total atau kembalian penjualan tidak sesuai.')
+  if (value.subtotal !== value.total) throw new CheckoutError('INVALID_REQUEST', 'Total penjualan tidak sesuai.')
+  if (value.paymentMethod === 'CASH') {
+    if (value.changeAmount !== calculateChange(value.cashReceived, value.total) || value.customerSnapshot !== undefined || value.dueDate !== undefined) throw new CheckoutError('INVALID_REQUEST', 'Kembalian atau metadata tunai tidak sesuai.')
+  } else {
+    try { validateCustomerSnapshot(value.customerSnapshot); validateDueDate(value.dueDate) }
+    catch (cause) { throw new CheckoutError('INVALID_REQUEST', 'Snapshot pelanggan atau jatuh tempo tidak valid.', { cause }) }
+    if (value.cashReceived !== 0 || value.changeAmount !== 0 || value.total <= 0) throw new CheckoutError('INVALID_REQUEST', 'Bon tidak menerima uang saat checkout dan totalnya wajib positif.')
+  }
 }
 
 // Historical validation uses snapshots, never current master names/prices/policy.

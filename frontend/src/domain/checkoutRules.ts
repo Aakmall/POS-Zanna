@@ -94,6 +94,6 @@ export function validateCheckoutAgainstSnapshot(command: CheckoutCommand, catalo
   }
   const quote = calculateCheckoutQuote(command.lines, catalog, balances)
   if (command.expectedTotal !== quote.total) throw new CheckoutError('QUOTE_CHANGED', 'Total konfirmasi tidak sesuai perhitungan master terbaru.')
-  calculateChange(command.cashReceived, quote.total)
+  if (command.paymentMethod === 'CASH') calculateChange(command.cashReceived, quote.total)
   return quote
 }

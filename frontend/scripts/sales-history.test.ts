@@ -12,7 +12,7 @@ process.env.TZ = 'Asia/Singapore'
 const code = (expected: SalesHistoryErrorCode) => (cause: unknown) => cause instanceof SalesHistoryError && cause.code === expected
 test('history kosong: page kosong, tidak membuat data atau schema baru', async () => {
   const f = historyFixture()
-  try { assert.deepEqual(await f.service.list(), { sales: [], nextCursor: null }); assert.equal(f.db.verno, 3); assert.equal(await f.db.checkoutIntents.count(), 0) }
+  try { assert.deepEqual(await f.service.list(), { sales: [], nextCursor: null }); assert.equal(f.db.verno, 4); assert.equal(await f.db.checkoutIntents.count(), 0) }
   finally { await f.db.delete() }
 })
 test('history satu penjualan sukses: header dan detail memakai hasil tersimpan', async () => {

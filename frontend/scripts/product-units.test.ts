@@ -99,7 +99,7 @@ test('integrasi pengaturan form → repository → inventory/checkout: Botol 1,5
     const variants: VariantDraft[] = values.map((value, index) => ({ name: ['Bensin 1,5 L', 'Bensin 5 L', 'Liter aktual'][index], sellingUnitId: value.sellingUnitId, quantityInBaseUnit: parseQuantity(value.quantity)!, saleMode: value.saleMode, sellingPrice: [15000, 50000, 10000][index], isActive: true }))
     const product = await repository.saveProduct({ name: 'Bensin', categoryId: category.id, baseUnitId: unit('l').id, unitPolicy: fuel, costPrice: null, costKnown: false, minimumStock: null, isActive: true, variants })
     assert.equal(await db.units.count(), builtinUnits.length)
-    assert.equal(db.verno, 3)
+    assert.equal(db.verno, 4)
     await inventory.execute({ operationId: crypto.randomUUID(), productId: product.id, movementType: 'OPENING_BALANCE', inputQuantity: 20000, inputUnitId: unit('l').id, reason: 'Stok tes' })
     const stored = (await repository.getSnapshot()).variants
     const byName = (name: string) => stored.find((variant) => variant.name === name)!

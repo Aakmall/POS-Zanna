@@ -72,8 +72,8 @@ export function CashierPage() {
       onRemove={(id) => { cart.remove(id); setFeedback('Produk dihapus dari keranjang.') }}
       onClear={() => { cart.clear(); setRecentlyAdded(null); setFeedback('Keranjang telah dikosongkan.') }}
       onPay={() => {
-        if (selectedMethod !== 'Tunai' || locked) return
-        try { const selections = cartSelections(cart.cart, products); setDrawer(false); void controller.begin(selections, cart.clearOwned) }
+        if (selectedMethod === 'QRIS' || locked) return
+        try { const selections = cartSelections(cart.cart, products); setDrawer(false); void controller.begin(selections, cart.clearOwned, selectedMethod === 'Bon' ? 'BON' : 'CASH') }
         catch (cause) { setFeedback(cause instanceof Error ? cause.message : 'Periksa baris keranjang yang tidak valid.') }
       }} />
   )
@@ -108,7 +108,7 @@ export function CashierPage() {
             </div>
           )}
           <p role="status" aria-live="polite" aria-atomic="true" className="mt-4 rounded-lg bg-brand-soft px-3 py-2.5 text-xs leading-5 text-brand">{feedback}</p>
-          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Pembayaran tunai menyimpan transaksi dan mengurangi stok di IndexedDB perangkat ini. QRIS dan Bon DEMO dinonaktifkan. <Link to="/stok" className="font-semibold text-brand underline">Atur stok awal di halaman Stok</Link> sebelum menjual. Pastikan harga dan jumlah aktual benar.</p>
+          <p className="mt-4 text-[11px] leading-5 text-ink-muted">Tunai dan Bon menyimpan penjualan serta mengurangi stok di IndexedDB perangkat ini. Bon wajib pelanggan aktif; cicilan diterima terpisah di Pelanggan &amp; Bon. QRIS DEMO tetap dinonaktifkan. <Link to="/stok" className="font-semibold text-brand underline">Atur stok awal di halaman Stok</Link> sebelum menjual.</p>
           <details className="mt-4 border-t border-line pt-3 text-xs text-ink-muted"><summary className="min-h-11 cursor-pointer py-3 font-medium">Skenario simulasi</summary><p className="mb-3 leading-5">Coba tampilan gagal dimuat. Baca ulang tidak mengubah atau menghapus master lokal.</p><Button variant="secondary" className="text-xs" onClick={simulateError} disabled={status !== 'ready'}>Coba state error</Button></details>
         </section>
       </div>

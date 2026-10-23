@@ -5,6 +5,7 @@ import type { Sale, SaleItem } from './sale'
 import { assertTimestamp, assertUuid, unitSnapshotKey } from './checkoutValidation'
 import { checkoutFingerprint, validateCheckoutIntent } from './checkoutRequest'
 import { validateSale } from './saleRules'
+import { customerSnapshotKey } from './customerRules'
 
 export function conversionSnapshotKey(value: ConversionSnapshot): string {
   return JSON.stringify([unitSnapshotKey(value.baseUnit), unitSnapshotKey(value.inputUnit), value.source,
@@ -23,8 +24,9 @@ export function validateStoredCheckout(intent: CheckoutIntent, sale: Sale, items
     validateCheckoutIntent(intent); validateSale(sale, items)
     if (intent.status !== 'COMMITTED' || intent.saleId !== sale.id || sale.checkoutOperationId !== intent.checkoutOperationId ||
       sale.requestFingerprint !== intent.requestFingerprint || sale.requestFingerprint !== checkoutFingerprint(intent.command) ||
-      sale.total !== intent.command.expectedTotal || sale.cashReceived !== intent.command.cashReceived ||
+      sale.total !== intent.command.expectedTotal || sale.cashReceived !== intent.command.cashReceived || sale.paymentMethod !== intent.command.paymentMethod ||
       items.length !== intent.command.lines.length || movements.length !== items.length || Date.parse(sale.createdAt) < Date.parse(intent.createdAt)) throw new Error('Sale, intent atau jumlah relasi berbeda.')
+    if (intent.command.paymentMethod === 'BON' && (!sale.customerSnapshot || customerSnapshotKey(sale.customerSnapshot) !== customerSnapshotKey(intent.command.customer) || sale.dueDate !== intent.command.dueDate)) throw new Error('Snapshot pelanggan/jatuh tempo berbeda dari intent.')
     const running = new Map<string, number>(), operations = new Set<string>(), movementIds = new Set<string>()
     let previousTime = Date.parse(sale.createdAt)
     for (const [index, item] of items.entries()) {

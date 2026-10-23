@@ -1,10 +1,11 @@
 import { CheckoutError, type CheckoutCommand, type CheckoutIntent } from './checkout'
 import { assertCheckoutQuantity, assertMoney, calculateChange, MAX_CHECKOUT_LINES } from './checkoutMath'
 import { assertRecord, assertTimestamp, assertUuid } from './checkoutValidation'
+import { validateCustomerSnapshot, validateDueDate } from './customerRules'
 
 export function validateCheckoutCommand(value: unknown): asserts value is CheckoutCommand {
   assertRecord(value, 'Request checkout'); assertUuid(value.checkoutOperationId, 'ID operasi checkout')
-  if (value.payloadVersion !== 1 || value.paymentMethod !== 'CASH') throw new CheckoutError('INVALID_REQUEST', 'Hanya payload v1 dan pembayaran CASH yang didukung.')
+  if (!((value.payloadVersion === 1 && value.paymentMethod === 'CASH') || (value.payloadVersion === 2 && value.paymentMethod === 'BON'))) throw new CheckoutError('INVALID_REQUEST', 'Gunakan CASH v1 atau Bon v2. QRIS belum didukung.')
   assertMoney(value.expectedTotal, 'Total konfirmasi'); assertMoney(value.cashReceived, 'Uang diterima')
   if (!Array.isArray(value.lines) || !value.lines.length || value.lines.length > MAX_CHECKOUT_LINES) throw new CheckoutError('INVALID_REQUEST', 'Keranjang harus berisi 1–100 varian unik.')
   const variants = new Set<string>()
@@ -20,7 +21,12 @@ export function validateCheckoutCommand(value: unknown): asserts value is Checko
     if (typeof expected.quantityInBaseUnit !== 'number' || !Number.isSafeInteger(expected.quantityInBaseUnit) || expected.quantityInBaseUnit <= 0 || expected.quantityInBaseUnit > 1_000_000_000) throw new CheckoutError('INVALID_REQUEST', 'Faktor konfirmasi tidak valid.')
     assertTimestamp(expected.productUpdatedAt); assertTimestamp(expected.variantUpdatedAt)
   }
-  calculateChange(value.cashReceived, value.expectedTotal)
+  if (value.paymentMethod === 'CASH') calculateChange(value.cashReceived, value.expectedTotal)
+  else {
+    try { validateCustomerSnapshot(value.customer); validateDueDate(value.dueDate) }
+    catch (cause) { throw new CheckoutError('INVALID_REQUEST', cause instanceof Error ? cause.message : 'Pelanggan/jatuh tempo tidak valid.', { cause }) }
+    if (value.cashReceived !== 0 || value.expectedTotal <= 0) throw new CheckoutError('INVALID_REQUEST', 'Bon harus bernilai positif dan tidak menerima uang saat checkout. Gunakan pembayaran cicilan terpisah.')
+  }
 }
 export function copyCheckoutCommand(value: unknown): CheckoutCommand {
   validateCheckoutCommand(value)
@@ -31,15 +37,19 @@ export function copyCheckoutCommand(value: unknown): CheckoutCommand {
       quantityInBaseUnit: line.expected.quantityInBaseUnit, unitPrice: line.expected.unitPrice,
       productUpdatedAt: line.expected.productUpdatedAt, variantUpdatedAt: line.expected.variantUpdatedAt }),
   })))
-  return Object.freeze({ payloadVersion: value.payloadVersion, checkoutOperationId: value.checkoutOperationId,
-    paymentMethod: value.paymentMethod, lines, expectedTotal: value.expectedTotal, cashReceived: value.cashReceived })
+  const common = { checkoutOperationId: value.checkoutOperationId, lines, expectedTotal: value.expectedTotal, cashReceived: value.cashReceived }
+  return value.paymentMethod === 'CASH'
+    ? Object.freeze({ ...common, payloadVersion: 1, paymentMethod: 'CASH' })
+    : Object.freeze({ ...common, payloadVersion: 2, paymentMethod: 'BON', customer: Object.freeze({ ...value.customer }), dueDate: value.dueDate })
 }
 export function checkoutFingerprint(value: unknown): string {
   const command = copyCheckoutCommand(value)
-  return JSON.stringify([command.payloadVersion, command.paymentMethod, command.cashReceived, command.expectedTotal,
+  const parts = [command.payloadVersion, command.paymentMethod, command.cashReceived, command.expectedTotal,
     command.lines.map((line) => [line.variantId, line.quantity, line.expected.productId, line.expected.baseUnitId,
       line.expected.sellingUnitId, line.expected.saleMode, line.expected.quantityInBaseUnit, line.expected.unitPrice,
-      line.expected.productUpdatedAt, line.expected.variantUpdatedAt])])
+      line.expected.productUpdatedAt, line.expected.variantUpdatedAt])]
+  // Preserve the CASH v1 byte representation exactly: old intent fingerprints stay valid.
+  return JSON.stringify(command.paymentMethod === 'CASH' ? parts : [...parts, [command.customer.id, command.customer.name, command.customer.phone, command.customer.address, command.customer.updatedAt], command.dueDate])
 }
 export function assertSameCheckoutRequest(stored: { checkoutOperationId: string; requestFingerprint: string }, incoming: unknown): void {
   validateCheckoutCommand(incoming)

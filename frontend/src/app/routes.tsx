@@ -14,8 +14,10 @@ import { SalesHistoryPage } from '../features/sales-history/SalesHistoryPage'
 import { SaleDetailsPage } from '../features/sales-history/SaleDetailsPage'
 import type { SalesHistoryReader } from '../domain/salesHistory'
 import type { DashboardService } from '../services/dashboardOperations'
+import type { CreditService } from '../services/creditOperations'
+import type { CustomerService } from '../services/customerOperations'
 
-export function AppRoutes({ salesHistory, dashboard }: { salesHistory?: SalesHistoryReader; dashboard?: DashboardService } = {}) {
+export function AppRoutes({ salesHistory, dashboard, credit, customers }: { salesHistory?: SalesHistoryReader; dashboard?: DashboardService; credit?: CreditService; customers?: CustomerService } = {}) {
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -28,7 +30,7 @@ export function AppRoutes({ salesHistory, dashboard }: { salesHistory?: SalesHis
         <Route path="stok" element={<StockPage />} />
         <Route path="penjualan" element={<SalesHistoryPage service={salesHistory} />} />
         <Route path="penjualan/:saleId" element={<SaleDetailsPage service={salesHistory} />} />
-        <Route path="bon" element={<CreditPage />} />
+        <Route path="bon" element={<CreditPage service={credit} customers={customers} />} />
         <Route path="laporan" element={<ReportsPage />} />
         <Route path="pengaturan" element={<SettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />

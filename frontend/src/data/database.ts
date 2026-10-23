@@ -3,6 +3,8 @@ import type { Category, Product, ProductVariant, Unit } from '../domain/product'
 import type { InventoryBalance, StockMovement } from '../domain/inventory'
 import type { Sale, SaleItem } from '../domain/sale'
 import type { CheckoutIntent } from '../domain/checkout'
+import type { Customer } from '../domain/customer'
+import type { CreditPayment, CreditPaymentIntent, Receivable } from '../domain/credit'
 
 export const PRODUCT_SCHEMA_V1 = {
   products: 'id, categoryId, baseUnitId, &demoKey, updatedAt',
@@ -20,6 +22,10 @@ export class ZannaDatabase extends Dexie {
   sales!: Table<Sale, string>
   saleItems!: Table<SaleItem, string>
   checkoutIntents!: Table<CheckoutIntent, string>
+  customers!: Table<Customer, string>
+  receivables!: Table<Receivable, string>
+  creditPayments!: Table<CreditPayment, string>
+  creditPaymentIntents!: Table<CreditPaymentIntent, string>
   constructor(name = 'zanna-cell-db') {
     super(name)
     this.version(1).stores(PRODUCT_SCHEMA_V1)
@@ -34,6 +40,14 @@ export class ZannaDatabase extends Dexie {
       saleItems: 'id, saleId, productId, variantId, &[saleId+position]',
       checkoutIntents: 'checkoutOperationId, status, createdAt, saleId',
       stockMovements: 'id, productId, &operationId, [productId+createdAt], createdAt, saleId, &saleItemId',
+    })
+    // Additive v4: no rewrite/backfill of old masters, CASH sales, intents or stock.
+    this.version(4).stores({
+      sales: 'id, &receiptNumber, &checkoutOperationId, createdAt, status, paymentMethod',
+      customers: 'id, name, updatedAt',
+      receivables: 'id, &saleId, &checkoutOperationId, customerId, status, createdAt, [customerId+createdAt], dueDate',
+      creditPayments: 'id, &operationId, receivableId, customerId, saleId, createdAt, [receivableId+createdAt], &receiptNumber',
+      creditPaymentIntents: 'operationId, status, receivableId, createdAt, &paymentId',
     })
     this.on('versionchange', () => this.close())
   }

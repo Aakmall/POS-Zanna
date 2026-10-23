@@ -11,9 +11,11 @@ import type { InventoryBalance } from '../domain/inventory'
 import { checkoutService as defaultCheckoutService } from '../services/checkoutService'
 import { CheckoutController, type CheckoutClient } from '../features/cashier/checkoutController'
 import { browserCheckoutSession, type CheckoutSessionStore } from '../features/cashier/checkoutSession'
+import { customerService as defaultCustomerService } from '../services/customerService'
+import type { CustomerService } from '../services/customerOperations'
 
 const empty: CatalogSnapshot = { products: [], categories: [], units: [], variants: [] }
-export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService, checkout = defaultCheckoutService, checkoutSession = browserCheckoutSession, catalogEnabled = true }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService; checkout?: CheckoutClient; checkoutSession?: CheckoutSessionStore; catalogEnabled?: boolean }>) {
+export function DemoProvider({ children, repository = productRepository, inventory = defaultInventoryService, checkout = defaultCheckoutService, checkoutSession = browserCheckoutSession, customers = defaultCustomerService, catalogEnabled = true }: PropsWithChildren<{ repository?: ProductRepository; inventory?: InventoryService; checkout?: CheckoutClient; checkoutSession?: CheckoutSessionStore; customers?: CustomerService; catalogEnabled?: boolean }>) {
   const [snapshot, setSnapshot] = useState<CatalogSnapshot>(empty)
   const [cart, setCart] = useState<CartLine[]>([])
   const [status, setStatus] = useState<DemoStore['status']>('loading')
@@ -45,7 +47,7 @@ export function DemoProvider({ children, repository = productRepository, invento
   const products = useMemo(() => projectCatalog(snapshot, balances), [snapshot, balances])
   const store: DemoStore = {
     snapshot, repository, inventoryBalances: balances, inventoryService: inventory,
-    products, cart, setCart, checkoutController, status: combinedStatus, error: error || balanceError,
+    products, cart, setCart, checkoutController, customerService: customers, status: combinedStatus, error: error || balanceError,
     reload: () => { setStatus('loading'); setBalanceStatus('loading'); setAttempt((value) => value + 1) },
     simulateError: () => { setStatus('error'); setError('Ini error tampilan simulasi. Data IndexedDB tidak diubah.') },
   }

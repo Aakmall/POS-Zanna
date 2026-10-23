@@ -56,7 +56,7 @@ export function OperationalLayout() {
   }
 
   return (
-    <DemoProvider catalogEnabled={!(location.pathname === '/dashboard' || location.pathname === '/penjualan' || location.pathname.startsWith('/penjualan/'))}>
+    <DemoProvider catalogEnabled={!(location.pathname === '/bon' || location.pathname === '/dashboard' || location.pathname === '/penjualan' || location.pathname.startsWith('/penjualan/'))}>
       <div className={`operational-shell ${collapsed ? 'is-collapsed' : ''}`}>
         <a href="#operasional" className="skip-link">Lewati ke konten utama</a>
         <aside className="operational-sidebar">
@@ -68,8 +68,8 @@ export function OperationalLayout() {
           <div className="mt-auto pt-8">
             <div className="sidebar-demo mb-4 rounded-xl border border-white/25 p-3.5">
               <FlaskConical size={20} className="mb-2" aria-hidden="true" />
-              <p className="text-xs font-semibold">Tunai lokal · IndexedDB</p>
-              <p className="mt-1.5 text-[11px] leading-5 text-sidebar-muted">Tunai dan stok tersimpan di perangkat ini. Dashboard memakai penjualan nyata. Laporan dan Bon masih DEMO.</p>
+              <p className="text-xs font-semibold">Tunai &amp; Bon · IndexedDB</p>
+              <p className="mt-1.5 text-[11px] leading-5 text-sidebar-muted">Penjualan, pelanggan, cicilan dan stok tersimpan di perangkat ini. Dashboard nyata. Laporan masih DEMO.</p>
             </div>
             <div className="sidebar-user flex items-center gap-3 rounded-xl bg-black/10 p-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/90 text-xs font-bold text-brand" aria-hidden="true">OD</span>
@@ -94,7 +94,7 @@ export function OperationalLayout() {
                 <Search size={17} className="pointer-events-none absolute top-3.5 left-3 text-ink-muted" aria-hidden="true" />
                 <input id="workspace-search" className="field w-60 bg-surface pl-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari produk di kasir…" />
               </form>
-              <span className="pill border border-brand/15 bg-brand-soft text-brand">TUNAI LOKAL</span>
+              <span className="pill border border-brand/15 bg-brand-soft text-brand">POS LOKAL</span>
               <span title="Notifikasi belum tersedia"><button type="button" disabled className="flex size-11 cursor-not-allowed items-center justify-center rounded-xl text-ink-muted opacity-50" aria-label="Notifikasi belum tersedia"><Bell size={21} strokeWidth={1.7} aria-hidden="true" /></button></span>
               <div className="hidden items-center gap-2 border-l border-line pl-4 sm:flex"><span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand" aria-hidden="true">OD</span><span className="hidden text-xs font-medium text-ink 2xl:block">Operator Demo</span></div>
             </div>
@@ -102,7 +102,7 @@ export function OperationalLayout() {
           <main ref={main} id="operasional" tabIndex={-1} className="operational-main">
             <Outlet />
           </main>
-          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 4</span><span>Inventory &amp; Tunai IndexedDB · Laporan DEMO</span></footer>
+          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 5</span><span>Tunai &amp; Bon IndexedDB · Laporan DEMO</span></footer>
         </div>
 
         <nav aria-label="Navigasi cepat" className="mobile-nav fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-surface px-2 pt-2 lg:hidden">

@@ -25,7 +25,7 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
     <section aria-labelledby={titleId} className="panel cart-panel">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-5">
         <div><h2 id={titleId} className="font-semibold text-ink">Keranjang belanja</h2><p className="mt-1 text-xs text-ink-muted">Pesanan baru · {quote.itemCount} item</p></div>
-        <span className="pill bg-brand-soft text-brand">Tunai lokal</span>
+        <span className="pill bg-brand-soft text-brand">Tunai / Bon lokal</span>
       </div>
       <div className="cart-items">
         {!quote.lines.length ? (
@@ -62,14 +62,14 @@ export function CartPanel({ quote, method, onMethodChange, onChange, onRemove, o
         {quote.itemCount > 0 && !quote.valid && <p className="mb-4 rounded-lg bg-danger-soft p-3 text-xs leading-5 text-danger" role="alert">Harga, stok, atau katalog tidak valid. Sesuaikan atau kosongkan keranjang.</p>}
         <div className="mb-4 grid grid-cols-3 gap-2" role="group" aria-label="Metode pembayaran">
           {([{ name: 'Tunai', icon: Banknote }, { name: 'QRIS', icon: QrCode }, { name: 'Bon', icon: CreditCard }] as const).map(({ name, icon: Icon }) => (
-            <button key={name} type="button" disabled={locked || name !== 'Tunai'} title={name === 'Tunai' ? 'Pembayaran tunai tersimpan lokal' : 'DEMO dinonaktifkan; belum menyimpan pembayaran atau mengurangi stok'} aria-pressed={method === name} onClick={() => onMethodChange(name)} className={`payment-method ${method === name ? 'payment-method-active' : ''}`}><Icon size={17} strokeWidth={1.7} aria-hidden="true" />{name}{name !== 'Tunai' && ' DEMO'}</button>
+            <button key={name} type="button" disabled={locked || name === 'QRIS'} title={name === 'QRIS' ? 'DEMO dinonaktifkan; belum memproses pembayaran' : name === 'Bon' ? 'Bon / Bayar Nanti untuk pelanggan aktif' : 'Pembayaran tunai tersimpan lokal'} aria-pressed={method === name} onClick={() => onMethodChange(name)} className={`payment-method ${method === name ? 'payment-method-active' : ''}`}><Icon size={17} strokeWidth={1.7} aria-hidden="true" />{name}{name === 'QRIS' && ' DEMO'}</button>
           ))}
         </div>
         <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2">
           <Button variant="secondary" onClick={onClear} disabled={locked || !quote.itemCount} aria-label="Kosongkan keranjang" className="px-3 text-xs">Kosongkan</Button>
-          <Button onClick={onPay} disabled={locked || !quote.valid || method !== 'Tunai'} className="min-w-0 px-2 text-xs">Bayar {money(quote.total)}</Button>
+          <Button onClick={onPay} disabled={locked || !quote.valid || method === 'QRIS' || (method === 'Bon' && quote.total <= 0)} className="min-w-0 px-2 text-xs">{method === 'Bon' ? 'Catat Bon' : 'Bayar'} {money(quote.total)}</Button>
         </div>
-        <p className="mt-3 text-center text-[10px] leading-5 text-ink-muted">Tunai tersimpan di perangkat ini. QRIS dan Bon DEMO dinonaktifkan; belum memproses pembayaran.</p>
+        <p className="mt-3 text-center text-[10px] leading-5 text-ink-muted">Tunai dan Bon tersimpan di perangkat ini. Bon tidak menerima uang saat checkout. QRIS DEMO dinonaktifkan.</p>
       </div>
     </section>
   )

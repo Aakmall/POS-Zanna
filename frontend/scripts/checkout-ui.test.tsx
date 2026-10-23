@@ -250,11 +250,12 @@ test('UI dua varian satu produk: saldo bersama dan ledger SALE masing-masing', a
     assert.equal((await f.db.inventoryBalances.get(f.product.id))!.quantityBase, 97500)
   } finally { await ui.unmount() }
 })
-test('UI QRIS/Bon DEMO dinonaktifkan: tidak menyiapkan intent/Sale atau mengubah stok', async () => {
+test('UI QRIS DEMO tetap dinonaktifkan: tidak menyiapkan intent/Sale atau mengubah stok', async () => {
   const f = await setup(), ui = await mount(f)
   try {
     await ui.add()
-    for (const label of ['QRIS DEMO', 'Bon DEMO']) { assert.equal(button(label).disabled, true); await click(label) }
+    assert.equal(button('QRIS DEMO').disabled, true); await click('QRIS DEMO')
+    assert.equal(button('Bon').disabled, false) // Real BON now has its own integration/DOM tests.
     assert.equal(await f.db.checkoutIntents.count(), 0); assert.equal(await f.db.sales.count(), 0)
     assert.equal(await f.db.stockMovements.count(), 1); assert.equal((await f.db.inventoryBalances.get(f.product.id))!.quantityBase, 100000)
   } finally { await ui.unmount() }
