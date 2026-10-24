@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { Customer } from '../../domain/customer'
 import type { CustomerService } from '../../services/customerOperations'
 import { Dialog } from '../../components/ui/Dialog'
+import { userError } from '../../lib/userError'
 import { Button } from '../../components/ui/Button'
 
 export function CustomerForm({ customer, service, onClose, onSaved }: { customer: Customer | null; service: CustomerService; onClose: () => void; onSaved: () => void }) {
@@ -14,7 +15,7 @@ export function CustomerForm({ customer, service, onClose, onSaved }: { customer
       event.preventDefault(); if (guard.current) return
       guard.current = true; setBusy(true); setError('')
       try { await service.save({ id: customer?.id, expectedUpdatedAt: customer?.updatedAt, name, phone, address, note, isActive: active }); onSaved() }
-      catch (cause) { setError(cause instanceof Error ? cause.message : 'Gagal menyimpan pelanggan. Coba lagi.') }
+      catch (cause) { setError(userError(cause, 'Pelanggan belum berhasil disimpan. Periksa penyimpanan browser lalu coba lagi.')) }
       finally { guard.current = false; setBusy(false) }
     }}>
       <fieldset disabled={busy} className="space-y-4">

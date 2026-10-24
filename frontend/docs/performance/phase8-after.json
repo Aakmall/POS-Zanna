@@ -1,0 +1,240 @@
+{
+  "commit": "e19768010c3192a10f50cb871b537e604e8ecdbe",
+  "node": "v22.18.0",
+  "command": "node scripts/measure-bundle.mjs [output.json]",
+  "initialJs": {
+    "requests": 1,
+    "bytes": 470723,
+    "gzipBytes": 146470
+  },
+  "allJs": {
+    "requests": 13,
+    "bytes": 795430,
+    "gzipBytes": 243269
+  },
+  "coldPageJs": {
+    "CashierPage": {
+      "requests": 3,
+      "bytes": 549356,
+      "gzipBytes": 173165
+    },
+    "CreditPage": {
+      "requests": 3,
+      "bytes": 545344,
+      "gzipBytes": 170671
+    },
+    "DashboardPage": {
+      "requests": 3,
+      "bytes": 524996,
+      "gzipBytes": 166044
+    },
+    "ProductsPage": {
+      "requests": 3,
+      "bytes": 568134,
+      "gzipBytes": 178172
+    },
+    "ReportsPage": {
+      "requests": 3,
+      "bytes": 528184,
+      "gzipBytes": 166880
+    },
+    "SaleDetailsPage": {
+      "requests": 3,
+      "bytes": 522069,
+      "gzipBytes": 165115
+    },
+    "SalesHistoryPage": {
+      "requests": 3,
+      "bytes": 525518,
+      "gzipBytes": 166197
+    },
+    "SettingsPage": {
+      "requests": 3,
+      "bytes": 554982,
+      "gzipBytes": 174922
+    },
+    "StockPage": {
+      "requests": 3,
+      "bytes": 538615,
+      "gzipBytes": 170251
+    }
+  },
+  "chunks": [
+    {
+      "file": "assets/index-DRcVdGwt.js",
+      "initial": true,
+      "bytes": 470723,
+      "gzipBytes": 146470,
+      "imports": [],
+      "dynamicImports": [
+        "assets/CashierPage-DtI_-LOg.js",
+        "assets/DashboardPage-CdPB6G3C.js",
+        "assets/ProductsPage-BfBUs3lW.js",
+        "assets/StockPage-YpfMvHfC.js",
+        "assets/CreditPage-D9VCaQuk.js",
+        "assets/ReportsPage-CzTcx1uD.js",
+        "assets/SettingsPage-zHDZ8JbY.js",
+        "assets/SalesHistoryPage-DqEuTTjf.js",
+        "assets/SaleDetailsPage-CfBvWqd6.js"
+      ]
+    },
+    {
+      "file": "assets/CashierPage-DtI_-LOg.js",
+      "initial": false,
+      "bytes": 29146,
+      "gzipBytes": 9022,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/CreditPage-D9VCaQuk.js",
+      "initial": false,
+      "bytes": 25134,
+      "gzipBytes": 6528,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/DashboardPage-CdPB6G3C.js",
+      "initial": false,
+      "bytes": 4786,
+      "gzipBytes": 1901,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/ProductsPage-BfBUs3lW.js",
+      "initial": false,
+      "bytes": 47924,
+      "gzipBytes": 14029,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": [
+        "assets/universal-DtRHhOkh.js",
+        "assets/universal-C-xdLlBV.js"
+      ]
+    },
+    {
+      "file": "assets/ReportsPage-CzTcx1uD.js",
+      "initial": false,
+      "bytes": 7974,
+      "gzipBytes": 2737,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/SaleDetailsPage-CfBvWqd6.js",
+      "initial": false,
+      "bytes": 1859,
+      "gzipBytes": 972,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/SalesHistoryPage-DqEuTTjf.js",
+      "initial": false,
+      "bytes": 5308,
+      "gzipBytes": 2054,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/SettingsPage-zHDZ8JbY.js",
+      "initial": false,
+      "bytes": 34772,
+      "gzipBytes": 10779,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/StockPage-YpfMvHfC.js",
+      "initial": false,
+      "bytes": 18405,
+      "gzipBytes": 6108,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js",
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/page-shared-Dg5SXysF.js",
+      "initial": false,
+      "bytes": 49487,
+      "gzipBytes": 17673,
+      "imports": [
+        "assets/index-DRcVdGwt.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/universal-C-xdLlBV.js",
+      "initial": false,
+      "bytes": 59258,
+      "gzipBytes": 14065,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/universal-DtRHhOkh.js",
+      "initial": false,
+      "bytes": 40654,
+      "gzipBytes": 10931,
+      "imports": [
+        "assets/page-shared-Dg5SXysF.js"
+      ],
+      "dynamicImports": []
+    }
+  ],
+  "renderedModuleGroups": {
+    "react-dom": 536767,
+    "src/features": 297432,
+    "dexie": 132527,
+    "write-excel-file": 113935,
+    "src/domain": 93957,
+    "react-router": 93722,
+    "read-excel-file": 85554,
+    "src/data": 44968,
+    "src/components": 32576,
+    "lucide-react": 32010,
+    "fflate": 27375,
+    "src/services": 23985,
+    "react": 17246,
+    "scheduler": 9252,
+    "src/pwa": 8084,
+    "src/app": 8011,
+    "build helpers": 5370,
+    "src/mocks": 2898,
+    "src/hooks": 2566,
+    "src/lib": 774,
+    "src/main.tsx": 381,
+    "src/styles": 148,
+    "src/assets": 139,
+    "src/types": 129
+  }
+}

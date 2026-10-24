@@ -1,5 +1,6 @@
-import { useState, type SubmitEvent } from 'react'
+import { useRef, useState, type SubmitEvent } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
+import { userError } from '../../lib/userError'
 import { Button } from '../../components/ui/Button'
 import { useInventory } from '../../hooks/useInventory'
 import { createUuid } from '../../domain/id'
@@ -23,6 +24,7 @@ export function StockMovementForm({ productId, initialType, onClose, onSaved }: 
   const [fields, setFields] = useState({ quantity: '', option: options[0]?.key ?? '', custom: '', reason: '', type: initialType })
   const [operationId, setOperationId] = useState(createUuid)
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
+  const guard = useRef(false)
   const [confirmation, setConfirmation] = useState<{ command: InventoryCommand; preview: Preview } | null>(null)
   const [lastSubmitted, setLastSubmitted] = useState<InventoryCommand | null>(null)
   const selected = options.find((item) => item.key === fields.option)
@@ -42,20 +44,22 @@ export function StockMovementForm({ productId, initialType, onClose, onSaved }: 
     setFields((previous) => ({ ...previous, ...patch })); setOperationId(createUuid()); setError(''); setLastSubmitted(null); setConfirmation(null)
   }
   async function save(request: InventoryCommand) {
-    if (busy) return
+    if (guard.current) return
+    guard.current = true
     setBusy(true); setError(''); setLastSubmitted(request)
     try { onSaved(await service.execute(request)) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Mutasi gagal disimpan. Periksa izin dan ruang penyimpanan browser.') }
-    finally { setBusy(false) }
+    catch (cause) { setError(userError(cause, 'Mutasi belum berhasil disimpan. Periksa izin dan ruang penyimpanan browser, lalu periksa kembali operasi yang sama.')) }
+    finally { guard.current = false; setBusy(false) }
   }
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (guard.current) return
     if (!preview || !command) { setError(previewError || 'Periksa isian terlebih dahulu.'); return }
     if (command.movementType === 'ADJUSTMENT_OUT') setConfirmation({ command, preview })
     else void save(command)
   }
   const correction = initialType.startsWith('ADJUSTMENT')
-  return <Dialog mode="local" wide title={`${movementLabels[initialType]} · ${product.name}`} onClose={() => { if (!busy) onClose() }}>
+  return <Dialog mode="local" wide title={`${movementLabels[initialType]} · ${product.name}`} onClose={() => { if (!guard.current) onClose() }}>
     <form onSubmit={submit} className="space-y-5">
       <UnitPolicyNotice product={product} />
       <p className="rounded-lg bg-brand-soft p-3 text-sm leading-6 text-brand">{balance ? `Saldo saat ini: ${quantityText(balance.quantityBase)} ${base?.name}` : 'Stok awal belum diatur. Nilai 0 diperbolehkan untuk stok awal.'}</p>

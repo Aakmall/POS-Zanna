@@ -1,3 +1,4 @@
+import { ValidationError } from './errors'
 import { CheckoutError } from './checkout'
 import type { Product } from './product'
 import type { SaleItem } from './sale'
@@ -8,24 +9,24 @@ import { dashboardWindow, localDateKey, summarizeDashboard } from './dashboardRu
 export function sumMoney(values: readonly number[]): number {
   let total = 0n
   for (const value of values) {
-    if (!Number.isSafeInteger(value)) throw new Error('Nilai laporan tidak valid.')
+    if (!Number.isSafeInteger(value)) throw new ValidationError('Nilai laporan tidak valid.')
     total += BigInt(value)
   }
-  if (total > BigInt(Number.MAX_SAFE_INTEGER) || total < BigInt(Number.MIN_SAFE_INTEGER)) throw new Error('Nilai laporan terlalu besar untuk ditampilkan dengan tepat.')
+  if (total > BigInt(Number.MAX_SAFE_INTEGER) || total < BigInt(Number.MIN_SAFE_INTEGER)) throw new ValidationError('Nilai laporan terlalu besar untuk ditampilkan dengan tepat.')
   return Number(total)
 }
 export function reportWindow(request: ReportRequest, now = new Date()): ReportWindow {
-  if (!Number.isFinite(now.getTime()) || !['today', 'week', 'month', 'custom'].includes(request.preset) || !['ALL', 'CASH', 'BON'].includes(request.method ?? 'ALL')) throw new Error('Pilihan periode atau pembayaran tidak valid.')
+  if (!Number.isFinite(now.getTime()) || !['today', 'week', 'month', 'custom'].includes(request.preset) || !['ALL', 'CASH', 'BON'].includes(request.method ?? 'ALL')) throw new ValidationError('Pilihan periode atau pembayaran tidak valid.')
   const start = new Date(now); start.setHours(0, 0, 0, 0)
   if (request.preset === 'week') start.setDate(start.getDate() - 6)
   if (request.preset === 'month') start.setDate(1)
   const startDate = request.preset === 'custom' ? request.startDate ?? '' : localDateKey(start)
   const endDate = request.preset === 'custom' ? request.endDate ?? '' : localDateKey(now)
-  if (!startDate || !endDate) throw new Error('Isi tanggal mulai dan tanggal akhir.')
+  if (!startDate || !endDate) throw new ValidationError('Isi tanggal mulai dan tanggal akhir.')
   const query = createSalesHistoryQuery({ startDate, endDate })
   const day = new Date(query.fromInclusive!), end = new Date(query.toExclusive!), days: string[] = []
   while (day < end) {
-    if (days.length >= 366) throw new Error('Pilih rentang maksimal 366 hari. Ekspor beberapa periode untuk rentang lebih panjang.')
+    if (days.length >= 366) throw new ValidationError('Pilih rentang maksimal 366 hari. Ekspor beberapa periode untuk rentang lebih panjang.')
     days.push(localDateKey(day)); day.setDate(day.getDate() + 1); day.setHours(0, 0, 0, 0)
   }
   return { startDate, endDate, fromInclusive: query.fromInclusive!, toExclusive: query.toExclusive!, days, method: request.method ?? 'ALL' }
@@ -34,13 +35,13 @@ export function summarizeReport(data: ReportingData, window: ReportWindow): Sale
   const inPeriod = (date: string) => date >= window.fromInclusive && date < window.toExclusive
   const ids = new Set<string>()
   for (const result of data.period) {
-    if (ids.has(result.sale.id) || result.sale.status !== 'COMPLETED' || !inPeriod(result.sale.createdAt)) throw new Error('Data penjualan laporan tidak konsisten.')
+    if (ids.has(result.sale.id) || result.sale.status !== 'COMPLETED' || !inPeriod(result.sale.createdAt)) throw new ValidationError('Data penjualan laporan tidak konsisten.')
     ids.add(result.sale.id)
   }
   const sales = data.period.filter(({ sale }) => window.method === 'ALL' || sale.paymentMethod === window.method)
   const payments = window.method === 'CASH' ? [] : data.payments.filter((payment) => inPeriod(payment.createdAt))
   const paymentIds = new Set<string>()
-  for (const payment of payments) { if (paymentIds.has(payment.id)) throw new Error('Pembayaran laporan duplikat.'); paymentIds.add(payment.id) }
+  for (const payment of payments) { if (paymentIds.has(payment.id)) throw new ValidationError('Pembayaran laporan duplikat.'); paymentIds.add(payment.id) }
   const stock = summarizeDashboard({ ...data, period: [], recent: [] }, dashboardWindow())
   // Reuse the existing snapshot/unit-aware ranking, with the selected calendar days.
   const ranked = summarizeDashboard({ ...data, period: sales, recent: [] }, { ...window, days: window.days })
@@ -64,7 +65,7 @@ export function itemCost(item: SaleItem, product: Pick<Product, 'costKnown' | 'c
 }
 export function summarizeProfit(report: SalesReport, costs: readonly SaleItemCost[]): ProfitReport {
   const indexed = new Map<string, SaleItemCost>()
-  for (const cost of costs) { if (indexed.has(cost.saleItemId)) throw new Error('Catatan harga modal duplikat.'); indexed.set(cost.saleItemId, cost) }
+  for (const cost of costs) { if (indexed.has(cost.saleItemId)) throw new ValidationError('Catatan harga modal duplikat.'); indexed.set(cost.saleItemId, cost) }
   const rows: ProfitRow[] = report.sales.map(({ sale, items }) => {
     let missingItems = 0
     const known: { revenue: number; cost: number }[] = []
@@ -72,7 +73,7 @@ export function summarizeProfit(report: SalesReport, costs: readonly SaleItemCos
       const snapshot = indexed.get(item.id)
       if (!snapshot) { missingItems++; continue }
       const expected = itemCost(item, { costKnown: snapshot.costPerBaseUnit !== null, costPrice: snapshot.costPerBaseUnit })
-      if (snapshot.saleId !== sale.id || snapshot.policy !== expected.policy || snapshot.totalCost !== expected.totalCost) throw new Error('Catatan harga modal transaksi tidak konsisten.')
+      if (snapshot.saleId !== sale.id || snapshot.policy !== expected.policy || snapshot.totalCost !== expected.totalCost) throw new ValidationError('Catatan harga modal transaksi tidak konsisten.')
       if (snapshot.totalCost === null) missingItems++
       else known.push({ revenue: item.lineTotal, cost: snapshot.totalCost })
     }

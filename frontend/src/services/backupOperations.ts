@@ -1,3 +1,4 @@
+import { ValidationError } from '../domain/errors'
 import type { BackupFile, BackupRepository, MaintenanceGate, RestorePreview } from '../domain/backup'
 import { backupCounts, canonical, makeBackup, parseBackup, pendingOperations } from '../domain/backupFormat'
 
@@ -22,8 +23,8 @@ export class BackupService {
   }
   async restore(preview: RestorePreview, confirmation: string): Promise<void> {
     const plan = this.plans.get(preview)
-    if (!plan || confirmation !== 'PULIHKAN DATA') throw new Error('Periksa cadangan dan ketik PULIHKAN DATA untuk menyetujui penggantian seluruh data.')
-    if (plan.current !== this.lastBackup) throw new Error('Buat dan simpan cadangan data sekarang terlebih dahulu, lalu periksa ulang file pemulihan.')
+    if (!plan || confirmation !== 'PULIHKAN DATA') throw new ValidationError('Periksa cadangan dan ketik PULIHKAN DATA untuk menyetujui penggantian seluruh data.')
+    if (plan.current !== this.lastBackup) throw new ValidationError('Buat dan simpan cadangan data sekarang terlebih dahulu, lalu periksa ulang file pemulihan.')
     this.plans.delete(preview) // A plan can only be submitted once, even during a double click.
     await this.gate.exclusive(async () => {
       this.gate.checkRecovery()
@@ -33,6 +34,6 @@ export class BackupService {
   }
   async assertIdle(): Promise<void> {
     this.gate.checkRecovery()
-    if (pendingOperations(await this.repository.read())) throw new Error('Selesaikan atau batalkan transaksi/pembayaran tertunda sebelum melanjutkan.')
+    if (pendingOperations(await this.repository.read())) throw new ValidationError('Selesaikan atau batalkan transaksi/pembayaran tertunda sebelum melanjutkan.')
   }
 }

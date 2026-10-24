@@ -1,6 +1,7 @@
-﻿import { useEffect, useRef, useState, type SubmitEvent } from 'react'
+import { useEffect, useRef, useState, type SubmitEvent } from 'react'
 import { Bell, ChevronLeft, ChevronRight, FlaskConical, Menu, Search, ShoppingBag } from 'lucide-react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router'
+import { PageOutlet } from './PageOutlet'
 import { navigation } from '../../app/navigation'
 import { DemoProvider } from '../../app/DemoProvider'
 import { Button } from '../ui/Button'
@@ -12,7 +13,7 @@ const pageDescriptions: Record<string, string> = {
   '/kasir': 'Pilih produk dan layani belanja dengan lebih mudah.',
   '/produk': 'Semua kebutuhan warung, dalam satu katalog.',
   '/stok': 'Persediaan yang tertata untuk usaha sehari-hari.',
-  '/penjualan': 'Riwayat transaksi tunai dan struk tersimpan di perangkat ini.',
+  '/penjualan': 'Riwayat transaksi tunai, Bon dan struk tersimpan di perangkat ini.',
   '/bon': 'Rincian pelanggan dan bon dalam satu tempat.',
   '/laporan': 'Penjualan, laba kotor dan piutang dari transaksi tersimpan.',
   '/pengaturan': 'Sesuaikan ruang kerja warung Anda.',
@@ -102,9 +103,9 @@ export function OperationalLayout() {
           </header>
           <PwaStatus />
           <main ref={main} id="operasional" tabIndex={-1} className="operational-main">
-            <Outlet />
+            <PageOutlet />
           </main>
-          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 7</span><span>Tunai &amp; Bon · Laporan nyata</span></footer>
+          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 8</span><span>Tunai &amp; Bon · Laporan nyata</span></footer>
         </div>
 
         <nav aria-label="Navigasi cepat" className="mobile-nav fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-surface px-2 pt-2 lg:hidden">

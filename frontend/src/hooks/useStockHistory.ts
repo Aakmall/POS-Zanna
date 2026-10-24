@@ -1,3 +1,4 @@
+import { userError } from '../lib/userError'
 import { useEffect, useState } from 'react'
 import type { StockMovement } from '../domain/inventory'
 import { useInventory } from './useInventory'
@@ -9,6 +10,6 @@ export function useStockHistory(productId: string) {
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   useEffect(() => service.subscribeHistory(productId, (result) => { setRecords(result); setStatus('ready'); setError('') },
-    (cause) => { setStatus('error'); setError(cause instanceof Error ? cause.message : 'Riwayat tidak dapat dibaca.') }), [service, productId, attempt])
+    (cause) => { setStatus('error'); setError(userError(cause, 'Riwayat stok belum dapat dibaca. Periksa penyimpanan browser lalu coba lagi.')) }), [service, productId, attempt])
   return { records, status, error, retry: () => { setStatus('loading'); setAttempt((value) => value + 1) } }
 }

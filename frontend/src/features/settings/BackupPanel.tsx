@@ -1,3 +1,5 @@
+import { userError } from '../../lib/userError'
+import { ValidationError } from '../../domain/errors'
 import { useRef, useState } from 'react'
 import { BACKUP_TABLES, MAX_BACKUP_BYTES, type RestorePreview } from '../../domain/backup'
 import { backupService } from '../../services/backupService'
@@ -14,7 +16,7 @@ export function BackupPanel({ hasCart, service = backupService, safety = appSafe
     if (guard.current) return
     guard.current = true; setBusy(true); setError(''); setNotice('')
     try { const result = await service.create(); downloadBlob(new Blob([result.text], { type: 'application/json;charset=utf-8' }), result.name); setNotice('File cadangan telah dibuat dan diperiksa. Selesaikan unduhan, lalu simpan file di tempat aman. Aplikasi tidak dapat memastikan file sudah tersimpan di media Anda.') }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Cadangan belum berhasil dibuat. Data sumber tidak diubah.') }
+    catch (cause) { setError(userError(cause, 'Cadangan belum berhasil dibuat. Data sumber tidak diubah.')) }
     finally { guard.current = false; setBusy(false) }
   }
   async function inspect(file: File | undefined) {
@@ -22,8 +24,8 @@ export function BackupPanel({ hasCart, service = backupService, safety = appSafe
     setPreview(null); setConfirmation(''); setApproved(false); setFileName(file?.name ?? ''); setError(''); setNotice('')
     if (!file) return
     guard.current = true; setBusy(true)
-    try { if (!file.name.toLowerCase().endsWith('.json') || file.size > MAX_BACKUP_BYTES) throw new Error('Pilih cadangan POS-Zanna .json maksimal 50 MB.'); setPreview(await service.inspect(await file.text())) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Cadangan belum dapat diperiksa. Tidak ada data yang diubah.') }
+    try { if (!file.name.toLowerCase().endsWith('.json') || file.size > MAX_BACKUP_BYTES) throw new ValidationError('Pilih cadangan POS-Zanna .json maksimal 50 MB.'); setPreview(await service.inspect(await file.text())) }
+    catch (cause) { setError(userError(cause, 'Cadangan belum dapat diperiksa. Tidak ada data yang diubah.')) }
     finally { guard.current = false; setBusy(false) }
   }
   async function restore() {
@@ -31,7 +33,7 @@ export function BackupPanel({ hasCart, service = backupService, safety = appSafe
     if (hasCart) { setError('Keranjang masih berisi barang. Selesaikan atau kosongkan keranjang terlebih dahulu.'); return }
     guard.current = true; setBusy(true); setError('')
     try { await service.restore(preview, confirmation); setNotice('Pemulihan berhasil dan diperiksa. Muat ulang aplikasi sebelum melanjutkan.'); setPreview(null) }
-    catch (cause) { setError(cause instanceof Error ? `${cause.message} Tidak ada pemulihan sebagian. Periksa ulang file untuk mencoba lagi.` : 'Pemulihan gagal. Data semula tetap utuh. Periksa ulang file.'); setPreview(null); setApproved(false); setConfirmation('') }
+    catch (cause) { setError(`${userError(cause, 'Pemulihan gagal. Data semula tetap utuh. Periksa ulang file.')} Tidak ada pemulihan sebagian. Periksa ulang file untuk mencoba lagi.`); setPreview(null); setApproved(false); setConfirmation('') }
     finally { guard.current = false; setBusy(false) }
   }
   return <div className="space-y-6"><div><h2 className="text-lg font-semibold">Backup &amp; Pemulihan</h2><p className="mt-2 text-sm leading-6 text-ink-muted">Data di perangkat berbeda dari file cadangan. Buat cadangan secara berkala dan simpan salinannya di media yang aman. Status terhubung jaringan tidak berarti data sudah dicadangkan.</p></div>

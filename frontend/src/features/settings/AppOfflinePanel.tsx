@@ -1,3 +1,4 @@
+import { userError } from '../../lib/userError'
 import { useRef, useState, useSyncExternalStore } from 'react'
 import { pwaRuntime } from '../../pwa/pwaRuntime'
 import { appSafety } from '../../services/appSafety'
@@ -10,7 +11,7 @@ export function AppOfflinePanel({ hasCart }: { hasCart: boolean }) {
     if (guard.current || !approved || hasCart) return
     guard.current = true; setError('')
     try { await appSafety.exclusive(async () => { await backupService.assertIdle(); await pwaRuntime.activateUpdate(() => appSafety.updateReady()) }) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Pembaruan belum dapat diterapkan. Coba lagi setelah pekerjaan selesai.') }
+    catch (cause) { setError(userError(cause, 'Pembaruan belum dapat diterapkan. Coba lagi setelah pekerjaan selesai.')) }
     finally { guard.current = false }
   }
   return <div className="space-y-5"><h2 className="text-lg font-semibold">Aplikasi &amp; Offline</h2><dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-ink-muted">Jaringan</dt><dd className="mt-1 font-semibold">{state.online ? 'Terhubung' : 'Aplikasi sedang offline'}</dd></div><div><dt className="text-ink-muted">Aset aplikasi</dt><dd className="mt-1 font-semibold">{state.ready ? 'Siap untuk dibuka offline' : 'Belum siap / perlu build dan koneksi awal'}</dd></div></dl>

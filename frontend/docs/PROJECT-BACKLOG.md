@@ -1,6 +1,6 @@
 # POS-Zanna — Project Backlog
 
-Pembaruan 24 Oktober 2026, setelah Fase 7. Daftar ini berisi optimisasi/nonkritis dan keputusan penundaan yang eksplisit. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai. Autentikasi ditunda oleh pengguna: aplikasi hanya development/testing, belum operasional multiuser.
+Pembaruan 24 Oktober 2026, setelah Fase 8. Daftar ini berisi optimisasi/nonkritis dan keputusan penundaan yang eksplisit. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai. Autentikasi ditunda oleh pengguna: aplikasi hanya development/testing, belum operasional multiuser. Angka/temuan fase lama di bawah adalah riwayat; status terbaru ada pada bagian Fase 8.
 
 | ID | Kategori/prioritas | Temuan aktual | Tindak lanjut ketika waktunya tepat |
 | --- | --- | --- | --- |
@@ -70,3 +70,16 @@ PWA hanya cache aset. Data antarperangkat/origin/profil tidak tersinkronkan otom
 | BL-026 | Informasi lama, minor | ProductDetails masih memiliki teks mode variable lama yang menyebut belum tersedia di Kasir | Rapikan label pada tahap kosmetik terpisah; logika variable tidak diubah Fase 6 |
 
 Peringatan bundle utama >500 kB (BL-001) tetap terlihat; Excel memakai dynamic import. Warning React act pada harness CreditPage/DemoProvider dapat muncul di suite penuh (BL-015); jangan disembunyikan. Hasil dan ukuran build aktual: [validasi Fase 6](PHASE-6-VALIDATION-REPORT.md).
+
+## Fase 8 — status terbaru dan sisa pekerjaan
+
+| ID | Status | Temuan / tindak lanjut |
+| --- | --- | --- |
+| BL-001 | Diperbaiki pada Fase 8 | Initial JS 671,66 → 470,72 kB, tanpa warning >500 kB dan tanpa menaikkan threshold. 13 chunk, total JS sedikit lebih besar. Ukur query/render dengan volume nyata bila diperlukan; jangan menyamakan splitting dengan total cache lebih kecil |
+| BL-015 | Tidak teramati pada eksekusi Fase 8 | Baseline 363 dan final 376 source tests tanpa warning act. Penantian Dashboard disesuaikan ke metrik/error setelah lazy load; tidak ada filter diagnostic. Jika race muncul lagi, perbaiki settling/teardown yang tepat, jangan klaim seluruh race telah dibuktikan hilang |
+| BL-026 | Selesai Fase 8 | Detail variable kini menjelaskan berat/volume aktual di Kasir. Riwayat juga tidak lagi menyebut Laporan DEMO dan mengakui Bon |
+| BL-033 | Validasi native, ditunda pengguna | Checklist Fase 8 dan Fase 7 belum dijalankan; pertahankan A/B/C pada PHASE-8-MANUAL-TEST-GUIDE. Tidak meminta pengulangan seluruh Fase 1–6 |
+| BL-034 | Batas error recovery | Boundary React tidak menangkap kegagalan entry JS sebelum React hidup. Deployment/HTTP HTML/asset headers, origin dan jaringan harus diaudit pada fase deployment; tidak menambahkan reload otomatis yang bisa memutus form/transaksi |
+| BL-035 | PWA, batas pemeriksaan | Status ready dibatalkan bila probe gagal, tetapi cache eviction tidak dipantau terus-menerus. Maintenance selalu probe kembali; native offline dan durability perlu validasi perangkat. Jangan menganggap indikator jaringan sebagai cadangan |
+
+BL-002/003/008/010/016/021/028 tetap memerlukan profiling data besar sebelum pagination/indexing/worker; tidak ada perubahan schema atau query opsional di Fase 8. BL-020/027/029/030/031/032 tetap berlaku. Tidak ada bug kritis yang sengaja ditunda sebagai nonblocking. [Laporan Fase 8](PHASE-8-FINAL-REPORT.md).

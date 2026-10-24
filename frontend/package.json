@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/demo-logic.test.mjs scripts/product-repository.test.ts scripts/cart-ui.test.tsx scripts/inventory.test.ts scripts/stock-ui.test.tsx scripts/checkout-domain.test.ts scripts/checkout-migration.test.ts scripts/checkout-service.test.ts scripts/checkout-ui.test.tsx scripts/sales-history.test.ts scripts/sales-history-ui.test.tsx scripts/phase4-final.test.ts scripts/dashboard-ui.test.tsx scripts/product-units.test.ts scripts/product-units-ui.test.tsx scripts/credit.test.ts scripts/bon-checkout.test.ts scripts/credit-payments.test.ts scripts/credit-recovery.test.ts scripts/credit-ui.test.tsx scripts/phase6-reporting.test.ts scripts/product-import.test.ts scripts/phase6-ui.test.tsx scripts/backup-restore.test.ts scripts/app-safety.test.ts scripts/pwa.test.ts scripts/phase7-ui.test.tsx",
+    "test": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/demo-logic.test.mjs scripts/product-repository.test.ts scripts/cart-ui.test.tsx scripts/inventory.test.ts scripts/stock-ui.test.tsx scripts/checkout-domain.test.ts scripts/checkout-migration.test.ts scripts/checkout-service.test.ts scripts/checkout-ui.test.tsx scripts/sales-history.test.ts scripts/sales-history-ui.test.tsx scripts/phase4-final.test.ts scripts/dashboard-ui.test.tsx scripts/product-units.test.ts scripts/product-units-ui.test.tsx scripts/credit.test.ts scripts/bon-checkout.test.ts scripts/credit-payments.test.ts scripts/credit-recovery.test.ts scripts/credit-ui.test.tsx scripts/phase6-reporting.test.ts scripts/product-import.test.ts scripts/phase6-ui.test.tsx scripts/backup-restore.test.ts scripts/app-safety.test.ts scripts/pwa.test.ts scripts/phase7-ui.test.tsx scripts/phase8-ui.test.tsx",
     "test:credit": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/credit.test.ts scripts/bon-checkout.test.ts scripts/credit-payments.test.ts scripts/credit-recovery.test.ts scripts/credit-ui.test.tsx",
     "test:product-units": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/product-units.test.ts scripts/product-units-ui.test.tsx scripts/stock-ui.test.tsx",
     "test:phase4-final": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/phase4-final.test.ts scripts/dashboard-ui.test.tsx",
@@ -23,7 +23,9 @@
     "preview": "vite preview",
     "test:phase6": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/phase6-reporting.test.ts scripts/product-import.test.ts scripts/phase6-ui.test.tsx",
     "test:phase7": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/backup-restore.test.ts scripts/app-safety.test.ts scripts/pwa.test.ts scripts/phase7-ui.test.tsx",
-    "test:pwa:production": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/pwa-production.test.ts"
+    "test:pwa:production": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/pwa-production.test.ts",
+    "test:phase8": "tsx --tsconfig tsconfig.tests.json --import ./scripts/test-assets.mjs --test scripts/phase8-ui.test.tsx",
+    "measure:bundle": "node scripts/measure-bundle.mjs"
   },
   "dependencies": {
     "dexie": "^4.4.6",

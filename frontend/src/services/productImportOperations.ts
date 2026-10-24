@@ -1,3 +1,4 @@
+import { ValidationError } from '../domain/errors'
 import type { ImportCell, ImportPreview, ProductImportRepository } from '../domain/productImport'
 import { previewProductImport } from '../domain/productImportRules'
 
@@ -15,7 +16,7 @@ export class ProductImportService {
   // Future permission: products.import.confirm. No permission claim in development.
   async confirm(preview: ImportPreview, explicitlyConfirmed: boolean): Promise<number> {
     const trusted = this.previews.get(preview)
-    if (!explicitlyConfirmed || !trusted || trusted.issues.length || !trusted.drafts.length) throw new Error('Periksa preview tanpa kesalahan dan centang persetujuan impor terlebih dahulu.')
+    if (!explicitlyConfirmed || !trusted || trusted.issues.length || !trusted.drafts.length) throw new ValidationError('Periksa preview tanpa kesalahan dan centang persetujuan impor terlebih dahulu.')
     // Consume BEFORE awaiting to prevent concurrent/double submit. Re-preview after any failure.
     this.previews.delete(preview)
     return this.repository.commit(trusted)

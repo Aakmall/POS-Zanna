@@ -1,5 +1,6 @@
-﻿import { ArrowUpRight, House, Store } from 'lucide-react'
-import { NavLink, Outlet, Link } from 'react-router'
+import { ArrowUpRight, House, Store } from 'lucide-react'
+import { NavLink, Link } from 'react-router'
+import { PageOutlet } from './PageOutlet'
 import { Badge } from '../ui/Badge'
 import { useEffect } from 'react'
 
@@ -32,7 +33,7 @@ export function AppLayout() {
         <div className="mt-auto hidden border-t border-line pt-5 lg:block">
           <p className="text-xs font-semibold text-ink">Dibangun selangkah demi selangkah.</p>
           <p className="mt-2 text-xs leading-5 text-ink-muted">Fondasi yang sederhana untuk kebutuhan warung sehari-hari.</p>
-          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 7</span>
+          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 8</span>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col">
@@ -41,7 +42,7 @@ export function AppLayout() {
           <Badge>Master lokal / Tunai lokal</Badge>
         </header>
         <main id="konten-utama" tabIndex={-1} className="mx-auto w-full max-w-[1320px] flex-1 px-5 py-8 outline-none sm:px-8 sm:py-10 xl:px-12 xl:py-12">
-          <Outlet />
+        <PageOutlet />
         </main>
         <footer className="mx-5 flex flex-wrap items-center justify-between gap-2 border-t border-line py-5 text-xs text-ink-muted sm:mx-8 xl:mx-12">
           <p>Zanna-Cell <span aria-hidden="true" className="px-2">/</span> Bertumbuh bersama usaha Anda.</p>

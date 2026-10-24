@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useState, type PropsWithChildren } from 'react'
+import { userError } from '../lib/userError'
+import { useEffect, useMemo, useState, type PropsWithChildren } from 'react'
 import { productRepository } from '../services/productRepository'
 import { projectCatalog } from '../services/catalogRepository'
 import type { CartLine } from '../types/pos'
@@ -31,7 +32,7 @@ export function DemoProvider({ children, repository = productRepository, invento
     let active = true
     let unsubscribe: (() => void) | undefined
     let unsubscribeBalances: (() => void) | undefined
-    const fail = (cause: unknown) => { if (active) { setStatus('error'); setError(cause instanceof Error ? cause.message : 'Penyimpanan browser tidak dapat dibuka.') } }
+    const fail = (cause: unknown) => { if (active) { setStatus('error'); setError(userError(cause, 'Katalog belum dapat dibaca. Periksa izin penyimpanan browser lalu coba baca ulang tanpa menghapus data.')) } }
     repository.initialize().then(() => {
       if (!active) return
       unsubscribe = repository.subscribe((result) => {
@@ -39,7 +40,7 @@ export function DemoProvider({ children, repository = productRepository, invento
       }, fail)
       unsubscribeBalances = inventory.subscribeBalances((result) => {
         if (active) { setBalances(result); setBalanceStatus('ready'); setBalanceError('') }
-      }, (cause) => { if (active) { setBalanceStatus('error'); setBalanceError(cause instanceof Error ? cause.message : 'Saldo persediaan gagal dibaca.') } })
+      }, (cause) => { if (active) { setBalanceStatus('error'); setBalanceError(userError(cause, 'Saldo persediaan belum dapat dibaca. Periksa penyimpanan browser lalu coba baca ulang.')) } })
     }).catch(fail)
     return () => { active = false; unsubscribe?.(); unsubscribeBalances?.() }
   }, [repository, inventory, attempt, catalogEnabled])

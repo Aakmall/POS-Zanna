@@ -1,3 +1,4 @@
+import { userError } from '../../lib/userError'
 import { useRef, useState } from 'react'
 import type { ImportPreview } from '../../domain/productImport'
 import type { Unit } from '../../domain/product'
@@ -26,14 +27,14 @@ export function ProductImportDialog({ onClose, onSaved, units, service = product
     if (!file) return
     guard.current = true; setBusy(true)
     try { setPreview(await service.preview(await readProductExcel(file))) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'File belum dapat dibaca. Perbaiki lalu pilih ulang file.') }
+    catch (cause) { setError(userError(cause, 'File belum dapat dibaca. Perbaiki lalu pilih ulang file.')) }
     finally { guard.current = false; setBusy(false) }
   }
   async function commit() {
     if (guard.current || !preview || !confirmed || preview.issues.length) return
     guard.current = true; setBusy(true); setError('')
     try { const count = await service.confirm(preview, confirmed); onSaved(count) }
-    catch (cause) { setError(cause instanceof Error ? `${cause.message} Tidak ada impor sebagian. Pilih ulang file untuk mencoba lagi.` : 'Impor belum berhasil. Pilih ulang file dan periksa kembali.'); setPreview(null); setConfirmed(false) }
+    catch (cause) { setError(`${userError(cause, 'Impor belum berhasil. Pilih ulang file dan periksa kembali.')} Tidak ada impor sebagian. Pilih ulang file untuk mencoba lagi.`); setPreview(null); setConfirmed(false) }
     finally { guard.current = false; setBusy(false) }
   }
   return <Dialog title="Impor Excel Produk" mode="local" wide onClose={() => { if (!busy) onClose() }}><div className="space-y-5">

@@ -1,8 +1,9 @@
-﻿import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Eye, Pencil, Plus, Power, Tags } from 'lucide-react'
 import { useDemoStore } from '../../hooks/useDemoStore'
 import type { Product } from '../../domain/product'
 import { money } from '../../lib/format'
+import { userError } from '../../lib/userError'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { CatalogState } from '../../components/ui/CatalogState'
@@ -23,6 +24,7 @@ export function ProductsPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [confirm, setConfirm] = useState<Product | 'seed' | null>(null)
   const [notice, setNotice] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const guard = useRef(false)
   const needle = query.trim().toLocaleLowerCase('id')
   const products = snapshot.products.filter((product) => {
     const variants = snapshot.variants.filter((item) => item.productId === product.id)
@@ -31,14 +33,15 @@ export function ProductsPage() {
   }).sort((a, b) => a.name.localeCompare(b.name, 'id'))
 
   async function performConfirmed() {
-    if (!confirm) return
+    if (!confirm || guard.current) return
+    guard.current = true
     setBusy(true); setError('')
     try {
       if (confirm === 'seed') { const count = await repository.seedDemo(); setNotice(`${count} produk DEMO baru ditambahkan. Data yang sudah ada tidak ditimpa.`) }
       else { await repository.setProductActive(confirm.id, !confirm.isActive, confirm.updatedAt); setNotice(`${confirm.name} ${confirm.isActive ? 'dinonaktifkan' : 'diaktifkan'} di perangkat ini.`) }
       setConfirm(null)
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Data tidak berhasil disimpan.') }
-    finally { setBusy(false) }
+    } catch (cause) { setError(userError(cause, 'Data belum berhasil disimpan. Periksa penyimpanan browser lalu coba lagi.')) }
+    finally { guard.current = false; setBusy(false) }
   }
 
   return <>

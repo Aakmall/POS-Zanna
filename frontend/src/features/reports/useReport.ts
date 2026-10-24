@@ -1,3 +1,4 @@
+import { userError } from '../../lib/userError'
 import { useEffect, useState } from 'react'
 import type { ProfitReport, ReportRequest, SalesReport } from '../../domain/reporting'
 import { localDateKey } from '../../domain/dashboardRules'
@@ -14,7 +15,7 @@ export function useReport(service: ReportingService, request: ReportRequest) {
   }, [])
   useEffect(() => {
     let active = true, unsubscribe: (() => void) | undefined
-    const fail = (cause: unknown) => { if (active) setState({ key, report: null, error: cause instanceof Error ? cause.message : 'Laporan belum dapat dibaca. Coba muat ulang tanpa menghapus data.' }) }
+    const fail = (cause: unknown) => { if (active) setState({ key, report: null, error: userError(cause, 'Laporan belum dapat dibaca. Coba lagi tanpa menghapus data perangkat.') }) }
     try { unsubscribe = service.subscribe(JSON.parse(filterKey) as ReportRequest, new Date(), (report) => { if (active) setState({ key, report, error: '' }) }, fail) }
     catch (cause) { fail(cause) }
     return () => { active = false; unsubscribe?.() }
@@ -26,7 +27,7 @@ export function useProfit(service: ReportingService, report: SalesReport | null)
   useEffect(() => {
     if (!report) return
     let active = true
-    service.profit(report).then((profit) => { if (active) setState({ report, profit, error: '' }) }).catch((cause: unknown) => { if (active) setState({ report, profit: null, error: cause instanceof Error ? cause.message : 'Harga modal belum dapat dibaca.' }) })
+    service.profit(report).then((profit) => { if (active) setState({ report, profit, error: '' }) }).catch((cause: unknown) => { if (active) setState({ report, profit: null, error: userError(cause, 'Harga modal belum dapat dibaca. Coba baca ulang laporan; laba tidak dihitung dari data yang belum tersedia.') }) })
     return () => { active = false }
   }, [report, service])
   return { profit: state?.report === report ? state?.profit ?? null : null, error: state?.report === report ? state?.error ?? '' : '' }

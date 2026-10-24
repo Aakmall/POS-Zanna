@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ProductUnitPolicy, Unit } from '../../domain/product'
-import { parseQuantity, quantityText } from '../../domain/quantity'
+import { parseQuantity, parseRupiah, quantityText } from '../../domain/quantity'
 import { Button } from '../../components/ui/Button'
 import { unitAllowed } from '../../domain/unitPolicy'
 import { directUnitPatch, metricUnitPatch, packagingUnitPatch, stockImpact, variantSizeWarning, variantUnitEntry, type VariantUnitValue } from './variantUnits'
@@ -14,6 +14,9 @@ export function VariantFields({ value, units, baseId, unitPolicy, onChange, onRe
   onChange: (patch: Partial<VariantFormValue>) => void; onRemove?: () => void
 }) {
   const descriptionId = useId(), warningId = useId()
+  const priceId = useId(), barcodeId = useId()
+  const priceInvalid = !!value.price.trim() && parseRupiah(value.price) === null
+  const barcodeInvalid = !!value.barcode.trim() && !/^[A-Za-z0-9-]{1,80}$/.test(value.barcode.trim())
   const base = units.find((item) => item.id === baseId)
   const selling = units.find((item) => item.id === value.sellingUnitId)
   const allowed = base ? units.filter((unit) => unitAllowed({ unitPolicy }, base, unit, units)) : []
@@ -30,9 +33,9 @@ export function VariantFields({ value, units, baseId, unitPolicy, onChange, onRe
     <legend className="px-2 text-xs font-semibold">{value.name || 'Varian baru'}</legend>
     <div className="grid gap-4 sm:grid-cols-2">
       <label><span className="field-label">Nama varian *</span><input className="field" value={value.name} maxLength={80} required aria-describedby={warning ? warningId : undefined} onChange={(event) => onChange({ name: event.target.value })} /></label>
-      <label><span className="field-label">Harga jual (Rp) per 1 {selling?.name ?? 'satuan jual'}</span><input className="field" inputMode="numeric" value={value.price} placeholder="Kosong = belum diatur" onChange={(event) => onChange({ price: event.target.value })} /></label>
+      <label><span className="field-label">Harga jual (Rp) per 1 {selling?.name ?? 'satuan jual'}</span><input className="field" inputMode="numeric" value={value.price} aria-invalid={priceInvalid || undefined} aria-describedby={priceInvalid ? priceId : undefined} placeholder="Kosong = belum diatur" onChange={(event) => onChange({ price: event.target.value })} />{priceInvalid && <span id={priceId} aria-live="polite" className="mt-1 block text-xs text-danger">Isi rupiah bulat 0–1.000.000.000, misalnya 15000 atau 15.000. Kosongkan jika belum diatur.</span>}</label>
       <label><span className="field-label">SKU (opsional)</span><input className="field" value={value.sku} maxLength={60} onChange={(event) => onChange({ sku: event.target.value })} /></label>
-      <label><span className="field-label">Barcode (opsional)</span><input className="field" value={value.barcode} maxLength={80} onChange={(event) => onChange({ barcode: event.target.value })} /></label>
+      <label><span className="field-label">Barcode (opsional)</span><input className="field" value={value.barcode} maxLength={80} aria-invalid={barcodeInvalid || undefined} aria-describedby={barcodeInvalid ? barcodeId : undefined} onChange={(event) => onChange({ barcode: event.target.value })} />{barcodeInvalid && <span id={barcodeId} aria-live="polite" className="mt-1 block text-xs text-danger">Gunakan huruf, angka atau tanda hubung, maksimal 80 karakter. Barcode harus unik.</span>}</label>
       <label className="sm:col-span-2"><span className="field-label">Cara menjual *</span><select className="field" value={entry} aria-describedby={descriptionId} onChange={(event) => {
         if (!base) return
         if (event.target.value === 'direct') onChange(directUnitPatch(base, value.saleMode))
@@ -66,7 +69,7 @@ export function VariantFields({ value, units, baseId, unitPolicy, onChange, onRe
       <p className="font-semibold">Dampak pada stok</p>
       {impact?.issue ? <p className="text-warning">{impact.issue}</p> : impact?.lines.map((line) => <p key={line}>{line}</p>)}
       {entry === 'metric' && contents !== null && <p className="text-xs text-ink-muted">1 {selling?.name} = {quantityText(contents)} {base?.name} (ukuran baku).</p>}
-      <p className="mt-1 text-xs text-ink-muted">Simulasi pengaturan; stok baru berkurang setelah checkout tunai berhasil.</p>
+      <p className="mt-1 text-xs text-ink-muted">Simulasi pengaturan; stok baru berkurang setelah checkout tunai atau Bon berhasil.</p>
     </div>
     {warning && <p id={warningId} role="status" className="mt-3 rounded-lg bg-warning-soft p-3 text-sm leading-6 text-warning">{warning}</p>}
     {onRemove && <Button variant="danger" className="mt-4" onClick={onRemove}>Buang baris baru</Button>}

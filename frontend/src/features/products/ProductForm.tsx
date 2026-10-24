@@ -1,8 +1,9 @@
-﻿import { useState, type SubmitEvent } from 'react'
+import { useId, useRef, useState, type SubmitEvent } from 'react'
 import { Plus } from 'lucide-react'
 import type { Product, ProductDraft, ProductUnitPolicy } from '../../domain/product'
 import { parseQuantity, parseRupiah, quantityInput } from '../../domain/quantity'
 import { createUuid } from '../../domain/id'
+import { userError } from '../../lib/userError'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { useDemoStore } from '../../hooks/useDemoStore'
@@ -26,9 +27,13 @@ export function ProductForm({ product, onClose, onSaved }: { product: Product | 
     : [blankVariant()])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const guard = useRef(false)
+  const costId = useId()
+  const costInvalid = !!cost.trim() && parseRupiah(cost) === null
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (guard.current) return
     setError('')
     if (!reviewed) { setError('Konfirmasikan hasil peninjauan kebijakan satuan produk lama terlebih dahulu.'); return }
     const costPrice = cost.trim() ? parseRupiah(cost) : null
@@ -42,20 +47,20 @@ export function ProductForm({ product, onClose, onSaved }: { product: Product | 
       variants: converted.map(({ item, quantity, price }) => ({ id: item.id, name: item.name, sku: item.sku, barcode: item.barcode, sellingUnitId: item.sellingUnitId, quantityInBaseUnit: quantity!, sellingPrice: price, saleMode: item.saleMode, isActive: item.isActive })),
     }
     try { validateProduct(draft, snapshot) } catch (cause) { setError(cause instanceof Error ? cause.message : 'Konfigurasi produk tidak valid.'); return }
-    setBusy(true)
+    guard.current = true; setBusy(true)
     try { const saved = await repository.saveProduct(draft); onSaved(saved.name) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Gagal menyimpan. Periksa izin atau kapasitas penyimpanan browser.') }
-    finally { setBusy(false) }
+    catch (cause) { setError(userError(cause, 'Produk belum berhasil disimpan. Periksa izin dan ruang penyimpanan browser, lalu coba lagi.')) }
+    finally { guard.current = false; setBusy(false) }
   }
 
-  return <Dialog title={product ? 'Edit produk lokal' : 'Tambah produk lokal'} mode="local" wide onClose={() => { if (!busy) onClose() }}>
+  return <Dialog title={product ? 'Edit produk lokal' : 'Tambah produk lokal'} mode="local" wide onClose={() => { if (!guard.current) onClose() }}>
     <form onSubmit={submit} className="space-y-6">
       <fieldset disabled={busy} className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2"><span className="field-label">Nama produk *</span><input className="field" required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} /></label>
           <label><span className="field-label">Kategori *</span><select className="field" required value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">Pilih kategori</option>{snapshot.categories.filter((item) => item.isActive || item.id === categoryId).map((item) => <option key={item.id} value={item.id}>{item.name}{!item.isActive ? ' (nonaktif)' : ''}</option>)}</select></label>
           <label><span className="field-label">Satuan stok dasar *</span><select className="field" required disabled={!!product} value={baseId} onChange={(event) => { setBaseId(event.target.value); setUnitPolicy((policy) => ({ ...policy, allowedPackagingUnitIds: policy.allowedPackagingUnitIds.filter((id) => id !== event.target.value) })); setVariants((items) => items.map((item) => ({ ...item, unitEntry: 'direct', sellingUnitId: event.target.value, quantity: '1', saleMode: 'fixed' }))) }}>{snapshot.units.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select><span className="mt-1 block text-xs leading-5 text-ink-muted">Satuan untuk menghitung seluruh stok produk ini. Contoh: bensin dalam Liter, beras dalam Kilogram, mi dalam Bungkus. Semua varian memakai stok yang sama.</span></label>
-          <label><span className="field-label">Modal per 1 satuan dasar (Rp)</span><input className="field" inputMode="numeric" value={cost} onChange={(event) => setCost(event.target.value)} placeholder="Kosong = belum diketahui" /></label>
+          <label><span className="field-label">Modal per 1 satuan dasar (Rp)</span><input className="field" inputMode="numeric" aria-invalid={costInvalid || undefined} aria-describedby={costInvalid ? costId : undefined} value={cost} onChange={(event) => setCost(event.target.value)} placeholder="Kosong = belum diketahui" />{costInvalid && <span id={costId} aria-live="polite" className="mt-1 block text-xs text-danger">Isi rupiah bulat 0–1.000.000.000, atau kosongkan jika modal belum diketahui.</span>}</label>
           <label><span className="field-label">Batas stok minimum (satuan dasar)</span><input className="field" inputMode="decimal" value={minimum} onChange={(event) => setMinimum(event.target.value)} placeholder="Opsional, contoh 1,5" /></label>
         </div>
         <p className="text-xs leading-5 text-ink-muted">Modal kosong disimpan sebagai null, bukan nol. Harga menerima 15000 atau 15.000 (Rp15.000). Konversi/kuantitas menerima 1,5 atau 1.5. Satuan dasar terkunci setelah produk disimpan.</p>

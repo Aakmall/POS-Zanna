@@ -1,3 +1,4 @@
+import { ValidationError } from '../domain/errors'
 export interface SafetyLocks {
   request<T>(name: string, options: { mode: 'shared' | 'exclusive'; ifAvailable: true }, callback: (lock: unknown | null) => Promise<T>): Promise<T>
 }
@@ -31,25 +32,25 @@ export class AppSafety {
   stop() { this.releaseTab?.(); this.releaseTab = undefined }
   async write<T>(operation: () => Promise<T>): Promise<T> {
     await this.start()
-    if (this.state.reloadRequired || this.state.busy) throw new Error('Selesaikan pemulihan/pembaruan dan muat ulang aplikasi sebelum menyimpan data.')
+    if (this.state.reloadRequired || this.state.busy) throw new ValidationError('Selesaikan pemulihan/pembaruan dan muat ulang aplikasi sebelum menyimpan data.')
     const locks = this.locks()
     if (!locks) return operation() // Normal local operations remain available; restore is disabled.
     return locks.request('pos-zanna.business-writes.v1', { mode: 'shared', ifAvailable: true }, async (lock) => {
-      if (!lock || this.state.reloadRequired || this.state.busy) throw new Error('Pemulihan/pembaruan sedang berlangsung. Data belum disimpan; muat ulang setelah selesai.')
+      if (!lock || this.state.reloadRequired || this.state.busy) throw new ValidationError('Pemulihan/pembaruan sedang berlangsung. Data belum disimpan; muat ulang setelah selesai.')
       return operation()
     })
   }
   async exclusive<T>(operation: () => Promise<T>): Promise<T> {
-    if (!this.canMaintain()) throw new Error('Pemulihan/pembaruan aman memerlukan aplikasi build pada HTTPS atau localhost, browser dengan perlindungan antar-tab, dan aset offline yang sudah siap.')
+    if (!this.canMaintain()) throw new ValidationError('Pemulihan/pembaruan aman memerlukan aplikasi build pada HTTPS atau localhost, browser dengan perlindungan antar-tab, dan aset offline yang sudah siap.')
     await this.start()
-    if (this.state.reloadRequired || this.state.busy) throw new Error('Aplikasi perlu dimuat ulang atau masih memproses pekerjaan lain.')
+    if (this.state.reloadRequired || this.state.busy) throw new ValidationError('Aplikasi perlu dimuat ulang atau masih memproses pekerjaan lain.')
     this.change({ busy: true }); this.stop(); await this.tabJob
     try {
       return await this.locks()!.request('pos-zanna.app-tabs.v1', { mode: 'exclusive', ifAvailable: true }, async (tabLock) => {
-        if (!tabLock) throw new Error('Tutup semua tab/jendela POS-Zanna lainnya, lalu periksa ulang cadangan atau pembaruan.')
-        if (await this.clientProbe!() !== 1) throw new Error('Masih ada tab/jendela aplikasi lain, termasuk versi lama. Tutup semuanya selain jendela ini.')
+        if (!tabLock) throw new ValidationError('Tutup semua tab/jendela POS-Zanna lainnya, lalu periksa ulang cadangan atau pembaruan.')
+        if (await this.clientProbe!() !== 1) throw new ValidationError('Masih ada tab/jendela aplikasi lain, termasuk versi lama. Tutup semuanya selain jendela ini.')
         return this.locks()!.request('pos-zanna.business-writes.v1', { mode: 'exclusive', ifAvailable: true }, async (lock) => {
-          if (!lock) throw new Error('Masih ada penyimpanan transaksi aktif. Tunggu hingga selesai lalu periksa ulang.')
+          if (!lock) throw new ValidationError('Masih ada penyimpanan transaksi aktif. Tunggu hingga selesai lalu periksa ulang.')
           return operation()
         })
       })

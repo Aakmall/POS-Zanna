@@ -1,0 +1,82 @@
+{
+  "commit": "e19768010c3192a10f50cb871b537e604e8ecdbe",
+  "node": "v22.18.0",
+  "command": "node scripts/measure-bundle.mjs [output.json]",
+  "initialJs": {
+    "requests": 1,
+    "bytes": 671664,
+    "gzipBytes": 196876
+  },
+  "allJs": {
+    "requests": 4,
+    "bytes": 786809,
+    "gzipBytes": 229087
+  },
+  "chunks": [
+    {
+      "file": "assets/index-OSOc2tnQ.js",
+      "initial": true,
+      "bytes": 671664,
+      "gzipBytes": 196876,
+      "imports": [],
+      "dynamicImports": [
+        "assets/universal-BkiwuSp9.js",
+        "assets/universal-n_Gz249j.js"
+      ]
+    },
+    {
+      "file": "assets/browser-AF5_WNe4.js",
+      "initial": false,
+      "bytes": 15246,
+      "gzipBytes": 7221,
+      "imports": [],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/universal-BkiwuSp9.js",
+      "initial": false,
+      "bytes": 40645,
+      "gzipBytes": 10926,
+      "imports": [
+        "assets/browser-AF5_WNe4.js"
+      ],
+      "dynamicImports": []
+    },
+    {
+      "file": "assets/universal-n_Gz249j.js",
+      "initial": false,
+      "bytes": 59254,
+      "gzipBytes": 14064,
+      "imports": [
+        "assets/browser-AF5_WNe4.js"
+      ],
+      "dynamicImports": []
+    }
+  ],
+  "renderedModuleGroups": {
+    "react-dom": 536767,
+    "src/features": 294585,
+    "dexie": 132527,
+    "write-excel-file": 113935,
+    "react-router": 93722,
+    "src/domain": 93123,
+    "read-excel-file": 85554,
+    "src/data": 44898,
+    "lucide-react": 32121,
+    "src/components": 29800,
+    "fflate": 27375,
+    "src/services": 23563,
+    "react": 17246,
+    "scheduler": 9252,
+    "src/pwa": 7748,
+    "src/app": 6230,
+    "build helpers": 5414,
+    "src/mocks": 2898,
+    "src/hooks": 2304,
+    "src/lib": 535,
+    "src/main.tsx": 381,
+    "src/styles": 148,
+    "src/assets": 139,
+    "src/types": 129
+  }
+}

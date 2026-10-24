@@ -1,11 +1,12 @@
 import { BrowserRouter } from 'react-router'
 import { AppRoutes } from './routes'
 import { SafetyBoundary } from '../pwa/SafetyBoundary'
+import { PageErrorBoundary } from '../components/ui/PageErrorBoundary'
 
 export function App() {
   return (
-    <SafetyBoundary><BrowserRouter>
+    <BrowserRouter><PageErrorBoundary scope="app"><SafetyBoundary>
       <AppRoutes />
-    </BrowserRouter></SafetyBoundary>
+    </SafetyBoundary></PageErrorBoundary></BrowserRouter>
   )
 }

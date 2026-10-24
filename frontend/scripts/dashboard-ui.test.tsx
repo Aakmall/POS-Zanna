@@ -31,7 +31,7 @@ async function mount(f: ReturnType<typeof historyFixture>) {
   const container = browser.document.createElement('div'); browser.document.body.append(container)
   const root = createRoot(container), service = new DashboardService(new DexieDashboardRepository(f.db))
   await act(async () => root.render(<MemoryRouter initialEntries={['/dashboard']}><AppRoutes dashboard={service} salesHistory={f.service} /></MemoryRouter>))
-  await wait(() => !text().includes('Membaca Dashboard…'))
+  await wait(() => !!browser.document.querySelector('[data-metric="revenue"]') || !!browser.document.querySelector('[role="alert"]'))
   return { async close() { await act(async () => root.unmount()); container.remove() } }
 }
 test('DOM Dashboard kosong: seluruh metrik nyata nol, grafik tujuh hari dan empty states', async () => {
