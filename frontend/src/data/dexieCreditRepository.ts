@@ -1,3 +1,4 @@
+import { guardedWrite } from './guardedWrite'
 import { liveQuery } from 'dexie'
 import { CheckoutError } from '../domain/checkout'
 import { CreditError, type CreditOverview, type CreditPayment, type CreditPaymentCommand, type CreditPaymentIntent, type CreditPaymentResult, type CreditRepository, type ReceivableDetail } from '../domain/credit'
@@ -69,7 +70,7 @@ export class DexieCreditRepository implements CreditRepository {
   }
   async prepare(incoming: CreditPaymentCommand): Promise<CreditPaymentIntent> {
     const command = copyCreditPaymentCommand(incoming)
-    return this.safe(() => this.db.transaction('rw', this.tables(), async () => {
+    return this.safe(() => guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       const { intent } = await this.paymentState(command.operationId)
       if (intent) {
         samePaymentRequest(intent, command)
@@ -79,11 +80,11 @@ export class DexieCreditRepository implements CreditRepository {
       const prepared: CreditPaymentIntent = { operationId: command.operationId, receivableId: command.receivableId, command, requestFingerprint: paymentFingerprint(command), createdAt: new Date().toISOString(), status: 'PREPARED' }
       await this.db.creditPaymentIntents.add(prepared)
       return prepared
-    }))
+    })))
   }
   async execute(incoming: CreditPaymentCommand): Promise<CreditPaymentResult> {
     const command = copyCreditPaymentCommand(incoming)
-    return this.safe(() => this.db.transaction('rw', this.tables(), async () => {
+    return this.safe(() => guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       const { intent, result } = await this.paymentState(command.operationId)
       if (result) { samePaymentRequest(result.payment, command); return result }
       if (!intent) throw new CreditError('INTENT_REQUIRED', 'Simpan konfirmasi pembayaran terlebih dahulu.')
@@ -104,7 +105,7 @@ export class DexieCreditRepository implements CreditRepository {
       const stored = await this.paymentState(command.operationId)
       if (!stored.result) throw new CreditError('INTEGRITY_ERROR', 'Bukti pembayaran tidak ditemukan setelah penulisan.')
       return { ...stored.result, duplicate: false }
-    }))
+    })))
   }
   async getPayment(id: string) { assertUuid(id, 'ID pembayaran'); return this.safe(() => this.db.transaction('r', this.tables(), async () => (await this.paymentState(id)).result)) }
   async listUnresolved(): Promise<readonly CreditPaymentIntent[]> {
@@ -116,7 +117,7 @@ export class DexieCreditRepository implements CreditRepository {
   }
   async cancel(incoming: CreditPaymentCommand): Promise<CreditPaymentResult | null> {
     const command = copyCreditPaymentCommand(incoming)
-    return this.safe(() => this.db.transaction('rw', this.tables(), async () => {
+    return this.safe(() => guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       const { intent, result } = await this.paymentState(command.operationId)
       if (result) { samePaymentRequest(result.payment, command); return result }
       if (intent) samePaymentRequest(intent, command)
@@ -125,6 +126,6 @@ export class DexieCreditRepository implements CreditRepository {
         requestFingerprint: paymentFingerprint(command), createdAt: intent?.createdAt ?? new Date().toISOString(), status: 'CANCELLED' }
       await this.db.creditPaymentIntents.put(cancelled)
       return null
-    }))
+    })))
   }
 }

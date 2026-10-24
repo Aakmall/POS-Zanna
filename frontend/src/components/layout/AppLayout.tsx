@@ -32,7 +32,7 @@ export function AppLayout() {
         <div className="mt-auto hidden border-t border-line pt-5 lg:block">
           <p className="text-xs font-semibold text-ink">Dibangun selangkah demi selangkah.</p>
           <p className="mt-2 text-xs leading-5 text-ink-muted">Fondasi yang sederhana untuk kebutuhan warung sehari-hari.</p>
-          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 6</span>
+          <span className="mt-5 block text-[10px] font-medium tracking-widest text-ink-muted uppercase">POS-Zanna · Fase 7</span>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col">

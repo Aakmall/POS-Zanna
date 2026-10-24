@@ -1,3 +1,4 @@
+import { guardedWrite } from './guardedWrite'
 import { liveQuery } from 'dexie'
 import type { InventoryCommand, InventoryRepository, InventoryBalance, StockMovement, MovementResult } from '../domain/inventory'
 import { commandFingerprint, previewMovement, validateInventoryCommand } from '../domain/inventoryRules'
@@ -24,7 +25,7 @@ export class DexieInventoryRepository implements InventoryRepository {
   async apply(incoming: InventoryCommand): Promise<MovementResult> {
     const command = { ...incoming }
     validateInventoryCommand(command)
-    return this.db.transaction('rw', [this.db.products, this.db.categories, this.db.units, this.db.variants, this.db.inventoryBalances, this.db.stockMovements], async () => {
+    return guardedWrite(this.db, () => this.db.transaction('rw', [this.db.products, this.db.categories, this.db.units, this.db.variants, this.db.inventoryBalances, this.db.stockMovements], async () => {
       const fingerprint = commandFingerprint(command)
       const duplicate = await this.db.stockMovements.where('operationId').equals(command.operationId).first()
       if (duplicate) {
@@ -45,6 +46,6 @@ export class DexieInventoryRepository implements InventoryRepository {
       await this.db.inventoryBalances.put({ productId: product.id, quantityBase: preview.after, initializedAt: balance?.initializedAt ?? now, updatedAt: now })
       await this.db.stockMovements.add(movement)
       return { movement, duplicate: false }
-    })
+    }))
   }
 }

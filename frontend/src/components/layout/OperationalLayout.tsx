@@ -5,6 +5,7 @@ import { navigation } from '../../app/navigation'
 import { DemoProvider } from '../../app/DemoProvider'
 import { Button } from '../ui/Button'
 import { Dialog } from '../ui/Dialog'
+import { PwaStatus } from '../../pwa/PwaStatus'
 
 const pageDescriptions: Record<string, string> = {
   '/dashboard': 'Lihat ringkasan dan aktivitas warung Anda.',
@@ -99,10 +100,11 @@ export function OperationalLayout() {
               <div className="hidden items-center gap-2 border-l border-line pl-4 sm:flex"><span className="flex size-10 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand" aria-hidden="true">OD</span><span className="hidden text-xs font-medium text-ink 2xl:block">Operator Demo</span></div>
             </div>
           </header>
+          <PwaStatus />
           <main ref={main} id="operasional" tabIndex={-1} className="operational-main">
             <Outlet />
           </main>
-          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 6</span><span>Tunai &amp; Bon · Laporan nyata</span></footer>
+          <footer className="operational-footer"><span>Zanna-Cell <span aria-hidden="true">·</span> POS-Zanna / Fase 7</span><span>Tunai &amp; Bon · Laporan nyata</span></footer>
         </div>
 
         <nav aria-label="Navigasi cepat" className="mobile-nav fixed inset-x-0 bottom-0 z-20 flex justify-around border-t border-line bg-surface px-2 pt-2 lg:hidden">

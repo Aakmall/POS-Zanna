@@ -1,6 +1,6 @@
 # POS-Zanna — Project Backlog
 
-Pembaruan 23 Oktober 2026, setelah Fase 6. Daftar ini berisi optimisasi/nonkritis dan keputusan penundaan yang eksplisit. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai. Autentikasi ditunda oleh pengguna: aplikasi hanya development/testing, belum operasional multiuser.
+Pembaruan 24 Oktober 2026, setelah Fase 7. Daftar ini berisi optimisasi/nonkritis dan keputusan penundaan yang eksplisit. Bug kritis uang/stok/atomicity/kehilangan data tidak boleh hanya dipindahkan ke daftar ini untuk menyatakan langkah selesai. Autentikasi ditunda oleh pengguna: aplikasi hanya development/testing, belum operasional multiuser.
 
 | ID | Kategori/prioritas | Temuan aktual | Tindak lanjut ketika waktunya tepat |
 | --- | --- | --- | --- |
@@ -42,7 +42,20 @@ Fase 5 membuat pelanggan/Bon/cicilan nyata secara lokal. Omzet Dashboard mencaku
 
 Langkah 4.4 sudah mengintegrasikan UI tunai/receipt/recovery aktif per tab, menjaga UUID saat uncertain dan freeze/clear cart berdasarkan kepemilikan. Pengguna melaporkan checkout bensin dan produk lain telah diuji manual. Langkah 4.5 menambahkan [riwayat dan struk hanya-baca](PHASE-4-5-SALES-HISTORY.md). Pengujian visual/native browser/tablet 4.5 masih pending oleh pengguna. Tidak ada kelanjutan fase berikutnya tanpa persetujuan.
 
-Backup/restore, autentikasi owner, pembatalan/retur, PWA, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. IndexedDB lokal belum backup permanen. Dashboard/Laporan/HPP nyata pada Fase 6; modal lama tanpa snapshot tetap parsial. Pengujian Fase 6 native menunggu pengguna. Fase 7 belum dimulai.
+Autentikasi owner, pembatalan/retur, backend dan sinkronisasi tetap memerlukan fase/aturan sendiri. PWA/offline/backup/restore lokal tersedia pada Fase 7, tetapi IndexedDB/cache bukan backup permanen. Dashboard/Laporan/HPP nyata; modal lama tanpa snapshot tetap parsial. Pengguna menyatakan Fase 1–6 telah diuji manual; native Fase 7 menunggu pengguna.
+
+## Fase 7 — batas dan tindak lanjut
+
+| ID | Kategori/prioritas | Temuan | Tindak lanjut |
+| --- | --- | --- | --- |
+| BL-027 | Keamanan/deployment, prasyarat | PWA/Web Locks butuh HTTPS/localhost; HTTP LAN biasa tidak mendukungnya. Deployment root `/`; hosting/TLS belum dibuat | Siapkan HTTPS tepercaya untuk tablet pada fase deployment, tanpa mematikan keamanan browser |
+| BL-028 | Backup besar, nonblocking | Validasi graph penuh/canonical memakai memori dan waktu; dibatasi 50 MB/100.000 catatan | Profiling/indexing/streaming format pada scope tersendiri jika volume nyata memerlukan; jangan memakai restore parsial |
+| BL-029 | Keamanan backup, ditunda | File JSON sensitif belum terenkripsi dan tidak dilindungi autentikasi; checksum bukan bukti keaslian | Integrasikan backups.export/backups.restore OWNER dan desain enkripsi/key recovery pada fase khusus |
+| BL-030 | Kompatibilitas, batas sengaja | Restore hanya format1/schema5, memerlukan kondisi target konsisten, current backup, satu window/Web Locks/SW siap; bukan repair/merge | Rancang migrasi file dan pemulihan korup berdasar bukti bila diperlukan, jangan menebak data |
+| BL-031 | Validasi perangkat, pending pengguna | Emulator/HTTP production preview lulus otomatis; instalasi/native offline/download/media/tablet belum diuji agen | Ikuti PHASE-7-MANUAL-TEST-GUIDE pada profil/origin uji; jangan restore data penting |
+| BL-032 | Pengaturan, belum permanen | Informasi warung/printer masih state simulasi dan tidak termasuk backup bisnis | Persist dan sertakan dalam format backup saat fitur pengaturan nyata dibuat; jangan mengklaim simulasi sebagai data tersimpan |
+
+PWA hanya cache aset. Data antarperangkat/origin/profil tidak tersinkronkan otomatis. Bundle >500 kB dan warning act harness tetap tidak disembunyikan. Laporan aktual: [validasi Fase 7](PHASE-7-VALIDATION-REPORT.md).
 
 ## Fase 6 — tindak lanjut dan batas yang disepakati
 

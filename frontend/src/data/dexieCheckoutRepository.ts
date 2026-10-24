@@ -1,3 +1,4 @@
+import { guardedWrite } from './guardedWrite'
 import type { CheckoutRepository } from '../domain/checkoutRepository'
 import { CheckoutError, type CheckoutCancellation, type CheckoutCommand, type CheckoutIntent, type CheckoutQuote, type CheckoutResult, type CheckoutSelection } from '../domain/checkout'
 import { assertSameCheckoutRequest, checkoutFingerprint, copyCheckoutCommand, validateCheckoutIntent } from '../domain/checkoutRequest'
@@ -75,7 +76,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
   }
   async prepare(incoming: CheckoutCommand): Promise<CheckoutIntent> {
     const command = copyCheckoutCommand(incoming)
-    return this.safely(() => this.db.transaction('rw', this.resultTables(), async () => {
+    return this.safely(() => guardedWrite(this.db, () => this.db.transaction('rw', this.resultTables(), async () => {
       const { intent } = await this.operationState(command.checkoutOperationId)
       if (intent) {
         assertSameCheckoutRequest(intent, command)
@@ -87,11 +88,11 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       validateCheckoutIntent(prepared)
       await this.db.checkoutIntents.add(prepared)
       return this.intentCopy(prepared)
-    }))
+    })))
   }
   async commit(incoming: CheckoutCommand): Promise<CheckoutResult> {
     const command = copyCheckoutCommand(incoming)
-    return this.safely(() => this.db.transaction('rw', [...this.masterTables(), ...this.resultTables(), this.db.saleItemCosts], async () => {
+    return this.safely(() => guardedWrite(this.db, () => this.db.transaction('rw', [...this.masterTables(), ...this.resultTables(), this.db.saleItemCosts], async () => {
       const { intent, result } = await this.operationState(command.checkoutOperationId)
       if (result) { assertSameCheckoutRequest(result.sale, command); return result }
       if (!intent) throw new CheckoutError('INTENT_REQUIRED', 'Simpan intent melalui prepare sebelum execute.')
@@ -145,7 +146,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       const stored = await this.operationState(command.checkoutOperationId)
       if (!stored.result) throw integrityError(new Error('Hasil commit tidak ditemukan.'))
       return { ...stored.result, duplicate: false }
-    }))
+    })))
   }
   async getResult(id: string): Promise<CheckoutResult | null> {
     assertUuid(id, 'ID operasi checkout')
@@ -172,7 +173,7 @@ export class DexieCheckoutRepository implements CheckoutRepository {
   }
   async cancel(id: string): Promise<CheckoutCancellation> {
     assertUuid(id, 'ID operasi checkout')
-    return this.safely(() => this.db.transaction('rw', this.resultTables(), async () => {
+    return this.safely(() => guardedWrite(this.db, () => this.db.transaction('rw', this.resultTables(), async () => {
       const { intent, result } = await this.operationState(id)
       if (result) return { status: 'COMMITTED' as const, result }
       if (!intent) throw new CheckoutError('INTENT_REQUIRED', 'Intent tidak ditemukan untuk dibatalkan.')
@@ -182,6 +183,6 @@ export class DexieCheckoutRepository implements CheckoutRepository {
       validateCheckoutIntent(cancelled)
       await this.db.checkoutIntents.put(cancelled)
       return { status: 'CANCELLED' as const, intent: this.intentCopy(cancelled) }
-    }))
+    })))
   }
 }

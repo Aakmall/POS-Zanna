@@ -1,5 +1,7 @@
 # Zanna-Cell — POS-Zanna
 
+**Fase 7:** PWA standalone, cache aset/offline, indikator jaringan, update atas persetujuan, backup JSON lengkap dan restore penuh atomik. Schema tetap Dexie v5/14 tabel. Mulai dari [laporan Fase 7](docs/PHASE-7-FINAL-REPORT.md), [hasil validasi](docs/PHASE-7-VALIDATION-REPORT.md), dan [panduan manual terisolasi](docs/PHASE-7-MANUAL-TEST-GUIDE.md). Backup/restore belum dilindungi autentikasi; file tidak terenkripsi. Jangan menguji restore pada data penting.
+
 Sistem Kasir Warung Campuran. **Fase 6: Dashboard/laporan nyata, HPP dan laba kotor historis, piutang, ekspor CSV serta impor produk Excel dengan preview dan konfirmasi atomik**. Schema Dexie v5 additive mempertahankan data lama. Omzet = CASH + BON COMPLETED; cicilan bukan penjualan baru. Modal transaksi lama yang tidak tersedia ditandai parsial, bukan direka dari master terkini. QRIS tetap nonaktif. Lihat [laporan Fase 6](docs/PHASE-6-FINAL-REPORT.md), [hasil validasi](docs/PHASE-6-VALIDATION-REPORT.md) dan [panduan manual fitur baru](docs/PHASE-6-MANUAL-TEST-GUIDE.md).
 
 **Authentication & Authorization — Deferred:** atas keputusan pengguna, seluruh fitur terbuka untuk development/testing tanpa login, PIN atau role sementara. Laba/modal dan impor belum dilindungi izin OWNER. Belum siap operasional banyak pengguna; jangan memakai data sensitif untuk demo publik.
@@ -20,7 +22,16 @@ Buka alamat yang ditampilkan Vite, biasanya http://localhost:5173. Untuk tablet 
 npm run dev -- --host 0.0.0.0
 ```
 
-Gunakan alamat Network dari terminal. **localhost, IP LAN, port, profil browser, dan perangkat berbeda mempunyai penyimpanan berbeda.** Data belum disinkronkan. Operasi persediaan tidak memerlukan API/internet setelah frontend tersedia; membuka ulang aplikasi tanpa server/aset yang tersedia belum dijamin karena PWA/service worker belum dibuat.
+Gunakan alamat Network dari terminal. **localhost, IP LAN, port, profil browser, dan perangkat berbeda mempunyai penyimpanan berbeda.** Data belum disinkronkan. PWA/offline memerlukan production build, load awal berhasil, serta HTTPS atau localhost. HTTP LAN biasa belum mendukung SW/Web Locks. Cache aset bukan cadangan transaksi atau cloud sync.
+
+Untuk menguji PWA/restore pada profil uji terpisah:
+
+```powershell
+npm run build
+npm run preview -- --host 127.0.0.1 --port 4174 --strictPort
+```
+
+Buka localhost:4174 pada profil khusus uji. Pengaturan → Aplikasi & Offline menampilkan kesiapan aset, instalasi bila browser mendukung, dan update. Pengaturan → Backup & Pemulihan menyediakan Cadangkan Data, pemeriksaan file dan pemulihan penuh. Sebelum restore, buat/simpan cadangan kondisi sekarang, kosongkan keranjang, selesaikan recovery, tutup tab lain, periksa file dan ketik PULIHKAN DATA. Production deployment saat ini harus pada root origin `/`; sajikan sw.js/index.html/manifest dengan revalidasi/no-cache, dan aset hash boleh immutable.
 
 ## Alur penggunaan lokal
 
@@ -54,8 +65,10 @@ npm run test:sales-history
 npm run test:phase4-final
 npm run test:credit
 npm run test:phase6
-npm test
+npm run test:phase7
 npm run build
+npm run test:pwa:production
+npm test
 ```
 
 `typecheck` mencakup aplikasi, konfigurasi Vite, dan tests. `npm test` menjalankan seluruh tes logika, repository, migrasi, dan DOM memakai Node runner, tsx, fake-indexeddb, serta jsdom. Database tes memakai fake-indexeddb terisolasi, bukan IndexedDB browser pengguna. Build menghasilkan `dist/`; edit sumber `src/`, bukan hasil build. `npm run preview` menyajikan hasil build. Hosting SPA memerlukan fallback rute ke `index.html`.
@@ -79,7 +92,7 @@ React 19, TypeScript 6 strict, Vite 8, Tailwind CSS 4, React Router 7, Lucide Re
 | `/penjualan/:saleId` | Detail snapshot dan struk lama, termasuk setelah produk diarsipkan |
 | `/bon` | Pelanggan aktif/arsip, tagihan, cicilan/pelunasan, bukti, ringkasan dan recovery nyata; detail dapat dibuka dengan `?tagihan=<id>` |
 | `/laporan` | Tab Penjualan, Laba Kotor, Piutang; filter tanggal/metode, detail dan Ekspor CSV |
-| `/pengaturan` | Rancangan preferensi, printer, backup, dan informasi aplikasi |
+| `/pengaturan` | Backup & Pemulihan nyata; Aplikasi & Offline/instalasi/update; informasi warung/printer masih simulasi |
 | Rute lainnya | 404 sisi klien |
 
 ## Struktur
@@ -142,6 +155,9 @@ Setiap perubahan saldo dan penambahan ledger berada dalam satu transaksi Dexie. 
 ## Dokumentasi pembelajaran
 
 - [Fase 6: arsitektur, laporan/HPP, ekspor, impor dan autentikasi ditunda](docs/PHASE-6-FINAL-REPORT.md)
+- [Fase 7: PWA/offline, format backup, restore atomik dan risiko](docs/PHASE-7-FINAL-REPORT.md)
+- [Fase 7: validasi otomatis dan production preview](docs/PHASE-7-VALIDATION-REPORT.md)
+- [Fase 7: uji manual khusus fitur baru pada profil terisolasi](docs/PHASE-7-MANUAL-TEST-GUIDE.md)
 - [Fase 6: validasi otomatis dan daftar file](docs/PHASE-6-VALIDATION-REPORT.md)
 - [Fase 6: panduan manual khusus fitur baru/terdampak](docs/PHASE-6-MANUAL-TEST-GUIDE.md)
 - [Fase 5 lengkap: pelanggan, Bon, cicilan, database v4, audit, hasil tes, panduan dan latihan](docs/PHASE-5-FINAL-REPORT.md)
@@ -166,8 +182,8 @@ Pengguna menyatakan pengujian manual Fase 1–5 sudah dilakukan. Fase 6 hanya me
 
 ## Keterbatasan dan tahap berikutnya
 
-IndexedDB bukan backup permanen: penghapusan site data, eviction, mode privat, atau kerusakan perangkat dapat menghilangkan data. Backup/restore dan autentikasi tepercaya belum tersedia. Pembatasan UI bukan proteksi owner terhadap pengguna yang menguasai browser/DevTools. Ledger tidak memiliki audit server atau proteksi kriptografis.
+IndexedDB bukan backup permanen: penghapusan site data, eviction, mode privat, atau kerusakan perangkat dapat menghilangkan data. Backup/restore lokal kini tersedia, tetapi file JSON belum terenkripsi dan tidak otomatis tersimpan pada media lain. Autentikasi tepercaya belum tersedia; pembatasan UI/lease bukan proteksi OWNER terhadap pengguna perangkat/DevTools. Ledger tidak memiliki audit server. Checksum backup mendeteksi perubahan, bukan tanda tangan keaslian.
 
-Belum ada autentikasi/hak akses, reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, QRIS nyata, scanner/printer, PWA, deployment, Spring Boot, PostgreSQL, atau sinkronisasi. Dashboard dan Laporan nyata. HPP lama tanpa snapshot tetap parsial; laba belum biaya operasional. Impor hanya produk baru dengan kategori/satuan tersedia, maksimal 500 baris/2 MB/satu lembar .xlsx; ekspor laporan CSV bukan backup. Pembayaran Bon belum mendukung uang muka, bayar gabungan, refund atau edit/hapus bukti. Query graph/daftar belum dipaginasi untuk data besar; risiko dan warning tercatat pada backlog.
+Belum ada autentikasi/hak akses, reservasi stok keranjang, retur/pembatalan penjualan, supplier/pembelian, QRIS nyata, scanner/printer, hosting/TLS, Spring Boot, PostgreSQL, atau sinkronisasi. PWA dan backup/restore lokal tersedia. Restore hanya format v1/schema5, maksimal 50 MB/100.000 catatan, tanpa merge/auto-repair, membutuhkan Web Locks dan SW siap. Dashboard/Laporan nyata; HPP lama tetap parsial. Impor Excel tetap create-only dan CSV laporan bukan backup lengkap. Batas lain tetap tercatat pada backlog.
 
-**Fase 6 selesai dengan catatan akses sensitif terbuka dan menunggu pengujian manual pengguna.** Fase 7 serta Authentication & Authorization belum dimulai. Tidak ada commit/push otomatis; lakukan sendiri setelah menerima hasil dan validasi manual.
+**Fase 7 selesai dengan catatan akses sensitif terbuka; menunggu pengujian manual khusus Fase 7.** Pengguna menyatakan manual Fase 1–6 sudah dilakukan. Native instalasi/offline/restore/tablet Fase 7 tidak diklaim lulus oleh agen. Authentication & Authorization dan fase berikutnya belum dimulai. Tidak ada commit/push otomatis.

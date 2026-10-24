@@ -1,3 +1,4 @@
+import { guardedWrite } from './guardedWrite'
 import { liveQuery } from 'dexie'
 import type { ProductRepository } from '../domain/productRepository'
 import type { CatalogSnapshot, Category, Product, ProductDraft, ProductVariant } from '../domain/product'
@@ -16,11 +17,11 @@ export class DexieProductRepository implements ProductRepository {
   private tables() { return [this.db.products, this.db.categories, this.db.units, this.db.variants] }
 
   async initialize() {
-    await this.db.transaction('rw', this.db.units, async () => {
+    await guardedWrite(this.db, () => this.db.transaction('rw', this.db.units, async () => {
       for (const unit of builtinUnits) {
         if (!await this.db.units.where('code').equals(unit.code).first()) await this.db.units.add(unit)
       }
-    })
+    }))
   }
 
   async getSnapshot(): Promise<CatalogSnapshot> {
@@ -36,7 +37,7 @@ export class DexieProductRepository implements ProductRepository {
   }
 
   async saveProduct(draft: ProductDraft): Promise<Product> {
-    return this.db.transaction('rw', this.tables(), async () => {
+    return guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       const snapshot = await this.getSnapshot()
       const old = draft.id ? snapshot.products.find((item) => item.id === draft.id) : undefined
       if (draft.id && !old) throw new ValidationError('Produk tidak ditemukan. Muat ulang halaman.')
@@ -68,11 +69,11 @@ export class DexieProductRepository implements ProductRepository {
         await this.db.variants.put({ ...entry, isActive: false, updatedAt: now })
       }
       return product
-    })
+    }))
   }
 
   async setProductActive(id: string, isActive: boolean, expectedUpdatedAt: string) {
-    await this.db.transaction('rw', this.tables(), async () => {
+    await guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       const snapshot = await this.getSnapshot()
       const product = snapshot.products.find((item) => item.id === id)
       if (!product) throw new ValidationError('Produk tidak ditemukan.')
@@ -83,11 +84,11 @@ export class DexieProductRepository implements ProductRepository {
         return
       }
       await this.saveProduct({ ...product, expectedUpdatedAt, isActive, variants: snapshot.variants.filter((item) => item.productId === id) })
-    })
+    }))
   }
 
   async saveCategory(name: string, id?: string): Promise<Category> {
-    return this.db.transaction('rw', this.db.categories, async () => {
+    return guardedWrite(this.db, () => this.db.transaction('rw', this.db.categories, async () => {
       const key = nameKey(name)
       if (!key || name.trim().length > 60) throw new ValidationError('Nama kategori wajib diisi, maksimal 60 karakter.')
       const duplicate = await this.db.categories.where('nameKey').equals(key).first()
@@ -98,21 +99,21 @@ export class DexieProductRepository implements ProductRepository {
       const category: Category = { id: id ?? createUuid(), name: name.trim().replace(/\s+/g, ' '), nameKey: key, isActive: previous?.isActive ?? true, createdAt: previous?.createdAt ?? now, updatedAt: now }
       await this.db.categories.put(category)
       return category
-    })
+    }))
   }
 
   async setCategoryActive(id: string, isActive: boolean) {
-    await this.db.transaction('rw', this.db.categories, this.db.products, async () => {
+    await guardedWrite(this.db, () => this.db.transaction('rw', this.db.categories, this.db.products, async () => {
       const category = await this.db.categories.get(id)
       if (!category) throw new ValidationError('Kategori tidak ditemukan.')
       if (!isActive && await this.db.products.where('categoryId').equals(id).filter((item) => item.isActive).count()) throw new ValidationError('Nonaktifkan atau pindahkan produk aktif di kategori ini terlebih dahulu.')
       await this.db.categories.put({ ...category, isActive, updatedAt: nextStamp(category.updatedAt) })
-    })
+    }))
   }
 
   async seedDemo() {
     await this.initialize()
-    return this.db.transaction('rw', this.tables(), async () => {
+    return guardedWrite(this.db, () => this.db.transaction('rw', this.tables(), async () => {
       for (const name of demoCategoryNames) {
         if (!await this.db.categories.where('nameKey').equals(nameKey(name)).first()) await this.saveCategory(name)
       }
@@ -125,6 +126,6 @@ export class DexieProductRepository implements ProductRepository {
         count += 1
       }
       return count
-    })
+    }))
   }
 }

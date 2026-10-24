@@ -1,3 +1,4 @@
+import { guardedWrite } from './guardedWrite'
 import type { ProductImportRepository, ImportPreview } from '../domain/productImport'
 import { catalogFingerprint } from '../domain/productImport'
 import { nameKey, validateProduct } from '../domain/validation'
@@ -11,7 +12,7 @@ export class DexieProductImportRepository implements ProductImportRepository {
   async commit(incoming: ImportPreview): Promise<number> {
     const preview = structuredClone(incoming)
     if (preview.issues.length || !preview.drafts.length || preview.rows > 500) throw new Error('Perbaiki seluruh kesalahan lalu pilih ulang file sebelum impor.')
-    return this.db.transaction('rw', [this.db.products, this.db.categories, this.db.units, this.db.variants], async () => {
+    return guardedWrite(this.db, () => this.db.transaction('rw', [this.db.products, this.db.categories, this.db.units, this.db.variants], async () => {
       const repository = new DexieProductRepository(this.db), snapshot = await repository.getSnapshot()
       if (catalogFingerprint(snapshot) !== preview.catalogFingerprint) throw new Error('Data produk berubah sejak preview. Pilih ulang file dan periksa hasil sebelum impor.')
       const names = new Set(snapshot.products.map((p) => nameKey(p.name)))
@@ -21,6 +22,6 @@ export class DexieProductImportRepository implements ProductImportRepository {
         await repository.saveProduct(draft)
       }
       return preview.drafts.length
-    })
+    }))
   }
 }
